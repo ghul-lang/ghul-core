@@ -1,0 +1,100 @@
+# CI/CD pipeline.
+
+name: CICD
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number'
+        required: true
+
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+  push:
+    branches:
+      - "main"
+
+# Serialise pushes to main so two concurrent merges don't compute the same
+# version number; for pull requests, cancel any superseded run.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  CI: true
+
+jobs:
+  version:
+    name: Create a version number
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
+
+    permissions:
+      contents: read
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: '0'
+
+    # Compute the next version: the patch bump of the latest vX.Y.Z tag, unless
+    # the checked-in VERSION file declares a higher minor/major floor. A
+    # workflow_dispatch `version` input overrides outright; pull request builds
+    # get a -beta.<run> prerelease so they never collide with a real release.
+    - name: Determine the version
+      id: version
+      uses: ghul-lang/create-version@v1.0.0
+      with:
+        version: ${{ github.event.inputs.version }}
+        prerelease: ${{ github.event_name == 'pull_request' && format('beta.{0}', github.run_number) || '' }}
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
+
+    timeout-minutes: 10
+    needs: [version]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Restore local .NET tools
+      run: dotnet tool restore
+
+    - name: Run tests
+      run: dotnet ghul-test --use-dotnet-build tests
+
+  create-release:
+    needs: [version, test]
+    name: Create release
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 5
+    if: ${{ github.event_name == 'push' }}
+
+    permissions:
+      contents: write
+
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: '0'
+
+    - name: Create changelog
+      run: git log -1 --format="%s%n%n%b%n%n" >changelog.txt
+
+    # The library is distributed as source from Git: the release is the tag a
+    # consumer pins in their manifest, and there is no package to attach.
+    - name: Create a release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create "${{ needs.version.outputs.tag }}" \
+          --title "${{ needs.version.outputs.tag }}" \
+          --notes-file changelog.txt
