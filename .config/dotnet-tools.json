@@ -2,6 +2,13 @@
   "version": 1,
   "isRoot": true,
   "tools": {
+    "ghul.test": {
+      "version": "5.0.2",
+      "commands": [
+        "ghul-test"
+      ],
+      "rollForward": false
+    },
     "ghul.compiler": {
       "version": "64.10.0",
       "commands": [

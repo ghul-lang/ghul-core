@@ -22,21 +22,26 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 
 ## Layout
 
+- `ghul-project.json` — the library manifest (#3212 shape): name, targets,
+  sources. Nothing reads it yet; the `ghul` tool that will (#3211)
+  consumes the library from Git as source (#3179)
 - `src/` — one file per type
-- `tests/hello.ghul` — the program the library exists to compile
-- `tests/type-error.ghul` — a program whose one type error must report
+- `tests/hello` — the program the library exists to compile
+- `tests/type-error` — a program whose one type error must report
   against the library's declarations
-- `tests/run.sh` — compiles both under `--target wasm` and checks the
-  diagnostics
+
+Each test directory is a ghul-test folder: an MSBuild project that
+compiles the program together with the library's sources under
+`--target wasm`, and expectation files for what the compiler should say.
 
 ## Testing
 
 ```sh
 dotnet tool restore
-tests/run.sh
+dotnet ghul-test --use-dotnet-build tests
 ```
 
-The hello program passes when the only diagnostic is the code-generation
-error (the WasmGC backend does not exist yet); the type-error program
+The hello test passes when the only diagnostic is the code-generation
+error (the WasmGC backend does not exist yet); the type-error test
 passes when the error names the member and its place. Compiling the
 library needs ghul.compiler 64.10.0 or later.
