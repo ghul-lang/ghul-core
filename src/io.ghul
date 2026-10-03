@@ -1,15 +1,18 @@
 namespace IO is
-    namespace Std is
-        write_line(text: string) =>
+    // The console, as .NET sees it: a static class rather than a
+    // namespace, so its writers sit alongside the readers and the
+    // stream properties a later tier adds.
+    class Std is
+        write_line(text: string) static =>
             throw Ghul.NotImplementedException("IO.Std.write_line");
 
-        write_line(value: object) =>
+        write_line(value: object) static =>
             throw Ghul.NotImplementedException("IO.Std.write_line");
 
-        write(text: string) =>
+        write(text: string) static =>
             throw Ghul.NotImplementedException("IO.Std.write");
 
-        write(value: object) =>
+        write(value: object) static =>
             throw Ghul.NotImplementedException("IO.Std.write");
     si
 si
