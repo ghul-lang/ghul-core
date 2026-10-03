@@ -1,0 +1,15 @@
+namespace IO is
+    namespace Std is
+        write_line(text: string) =>
+            throw Ghul.NotImplementedException("IO.Std.write_line");
+
+        write_line(value: object) =>
+            throw Ghul.NotImplementedException("IO.Std.write_line");
+
+        write(text: string) =>
+            throw Ghul.NotImplementedException("IO.Std.write");
+
+        write(value: object) =>
+            throw Ghul.NotImplementedException("IO.Std.write");
+    si
+si

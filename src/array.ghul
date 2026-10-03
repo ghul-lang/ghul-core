@@ -1,0 +1,12 @@
+namespace Ghul is
+    // The compiler constructs the array family itself; the library
+    // supplies its members.
+    partial ARRAY is
+        count: int => throw NotImplementedException("array.count");
+
+        [index: int]: E => throw NotImplementedException("array[index]");
+
+        iterator: Collections.Iterator[E] =>
+            throw NotImplementedException("array.iterator");
+    si
+si
