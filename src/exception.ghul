@@ -1,0 +1,20 @@
+@@suppress("non-upper-snake-case-name")
+
+// Exceptions are PascalCase, concrete-class naming warnings
+// notwithstanding: the rule for them is mechanical and the warning is
+// taught it in the compiler's issue 3233.
+namespace Ghul is
+    class Exception is
+        message: string;
+
+        init(message: string) is
+            self.message = message;
+        si
+    si
+
+    class NotImplementedException: Exception is
+        init(member: string) is
+            super.init(member);
+        si
+    si
+si

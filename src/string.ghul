@@ -1,0 +1,7 @@
+namespace Ghul is
+    partial string is
+        length: int => throw NotImplementedException("string.length");
+
+        [index: int]: char => throw NotImplementedException("string[index]");
+    si
+si

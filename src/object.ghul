@@ -1,0 +1,12 @@
+namespace Ghul is
+    partial object is
+        to_string() -> string =>
+            throw NotImplementedException("object.to_string");
+
+        get_hash_code() -> int =>
+            throw NotImplementedException("object.get_hash_code");
+
+        equals(other: object?) -> bool =>
+            throw NotImplementedException("object.equals");
+    si
+si

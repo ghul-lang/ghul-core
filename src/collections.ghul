@@ -1,0 +1,19 @@
+namespace Collections is
+    // The iteration surface a `for` loop drives: move_next advances,
+    // current reads the element reached, and the iterator property of
+    // an iterable hands one out.
+    trait Iterator[E] is
+        move_next() -> bool;
+        current: E;
+        dispose();
+    si
+
+    trait Iterable[E] is
+        iterator: Iterator[E];
+    si
+
+    trait List[E]: Iterable[E] is
+        count: int;
+        [index: int]: E;
+    si
+si
