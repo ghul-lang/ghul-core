@@ -13,6 +13,95 @@ namespace Ghul is
         si
     si
 
+    partial bool is
+        /// `True` or `False`, as .NET writes a bool.
+        to_string() -> string => if self then "True" else "False" fi
+    si
+
+    partial byte is
+        /// The value in decimal, with a leading `-` when it is negative.
+        to_string() -> string is
+            let wide: long = cast long(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial short is
+        /// The value in decimal, with a leading `-` when it is negative.
+        to_string() -> string is
+            let wide: long = cast long(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial word is
+        /// The value in decimal, with a leading `-` when it is negative.
+        to_string() -> string is
+            let wide: long = cast long(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial ubyte is
+        /// The value in decimal.
+        to_string() -> string is
+            let wide: long = cast long(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial ushort is
+        /// The value in decimal.
+        to_string() -> string is
+            let wide: long = cast long(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial uint is
+        /// The value in decimal.
+        to_string() -> string is
+            let wide: long = cast long(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial uword is
+        /// The value in decimal.
+        to_string() -> string is
+            let wide: ulong = cast ulong(self)
+
+            return wide.to_string()
+        si
+    si
+
+    partial ulong is
+        /// The value in decimal.
+        to_string() -> string is
+            if self == 0UL then
+                return "0"
+            fi
+
+            let text mut = ""
+            let rest mut = self
+
+            while !(rest == 0UL) do
+                let digit = cast int(rest % 10UL)
+
+                text = _string_concat(_string_from_char(cast char(48 + digit)), text)
+                rest = rest / 10UL
+            od
+
+            return text
+        si
+    si
+
     partial long is
         /// The value in decimal, with a leading `-` when it is negative.
         to_string() -> string is
