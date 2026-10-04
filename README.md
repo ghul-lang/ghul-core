@@ -55,6 +55,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
   wasm target, each with the constructor it uses
+- `tests/display` — `$`, `inspect` and interpolation over records, union
+  variants, tuples, sequences and a `Displayable`, as .NET writes them
 
 Each test directory is a ghul-cli project whose `ghul-project.json` takes
 ghul-core from this checkout (`"path": "../.."`), so the program compiles
