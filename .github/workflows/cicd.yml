@@ -74,7 +74,7 @@ jobs:
         node-version: '24'
 
     - name: Run tests
-      run: dotnet ghul-test --use-dotnet-build tests
+      run: dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" tests
 
   create-release:
     needs: [version, test]
