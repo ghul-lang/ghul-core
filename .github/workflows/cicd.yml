@@ -67,6 +67,12 @@ jobs:
     - name: Restore local .NET tools
       run: dotnet tool restore
 
+    # A test built for the wasm target runs its program under Node.
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: '24'
+
     - name: Run tests
       run: dotnet ghul-test --use-dotnet-build tests
 
