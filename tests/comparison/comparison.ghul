@@ -1,0 +1,6 @@
+// The built-in scalar types compare through =~ and the relational
+// operators, as they do on .NET.
+f(a: byte, b: ubyte, c: ulong, d: double, e: char, g: decimal, h: bool) -> bool =>
+    a =~ a /\ b < b /\ c >= c /\ d =~ d /\ e <> e == 0 /\ g < g /\ h =~ h
+
+entry() is si

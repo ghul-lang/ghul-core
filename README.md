@@ -27,11 +27,14 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   consumes the library from Git as source (#3179)
 - `src/` — one file per type, plus `intrinsics.ghul`, the operators on the
   built-in types, kept in step with ghul-runtime's
+  and `comparison.ghul`, the scalar types' `Equatable` and `Comparable`
 - `tests/hello` — the program the library exists to compile
 - `tests/type-error` — a program whose one type error must report
   against the library's declarations
 - `tests/operators` — a program using the scalar operators, which must
   resolve with no error before code generation
+- `tests/comparison` — `=~` and the relational operators over each scalar
+  type
 
 Each test directory is a ghul-test folder: an MSBuild project that
 compiles the program together with the library's sources under
