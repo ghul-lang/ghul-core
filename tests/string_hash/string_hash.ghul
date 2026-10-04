@@ -1,0 +1,22 @@
+// Strings that are =~ hash alike, so a union with a string field
+// compares and hashes by its contents.
+use IO.Std
+
+union Shape is
+    CIRCLE(name: string, size: int)
+    DOT
+si
+
+entry() is
+    let a = "hello"
+    let b = "hel{"lo"}"
+
+    Std.write_line(if a.get_hash_code() == b.get_hash_code() then "equal strings hash alike" else "equal strings hash apart" fi)
+    Std.write_line(if a.get_hash_code() == "world".get_hash_code() then "hello and world collide" else "hello and world differ" fi)
+    Std.write_line(if "".get_hash_code() == "".get_hash_code() then "empty hashes alike" else "empty hashes apart" fi)
+
+    let x: Shape = Shape.CIRCLE("c", 1)
+    let y: Shape = Shape.CIRCLE("c", 1)
+
+    Std.write_line(if x =~ y then "variants equal" else "variants differ" fi)
+si
