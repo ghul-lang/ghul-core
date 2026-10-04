@@ -128,6 +128,19 @@ namespace Collections is
             _count = 0;
         si
 
+        /// The elements, in order, copied into a new array.
+        to_array() -> T[] is
+            let result = Ghul._array_new[T](_count);
+            let i mut = 0;
+
+            while i < _count do
+                Ghul._array_set(result, i, _items[i]);
+                i = i + 1;
+            od
+
+            return result;
+        si
+
         /// An iterator over the elements, in order.
         iterator: Iterator[T] => LIST_ITERATOR[T](_items, _count);
 

@@ -101,5 +101,11 @@ namespace Ghul is
         init(message: string) is
             super.init(message);
         si
+
+        /// - parameter: the name of the argument that was out of range
+        /// - message: why it was out of range
+        init(parameter: string, message: string) is
+            super.init(message);
+        si
     si
 si
