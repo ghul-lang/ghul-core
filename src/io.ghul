@@ -1,6 +1,25 @@
 namespace IO is
-    /// The console: writers for the standard output stream.
+    /// The console: standard output and standard error, written either
+    /// through `Std`'s own members or through the writers `out` and `error`.
     class Std is
+        _out: TextWriter static
+        _error: TextWriter static
+
+        init() static is
+            _out = _HOST_WRITER(1)
+            _error = _HOST_WRITER(2)
+        si
+
+        /// The writer for standard output.
+        out: TextWriter static => _out
+
+        /// The writer for standard error.
+        error: TextWriter static => _error
+
+        /// Writes a line break to standard output.
+        write_line() static =>
+            _write("\n", 1)
+
         /// Writes `text` and then a line break to standard output.
         ///
         /// - text: the text to write
@@ -30,6 +49,61 @@ namespace IO is
 
         // Hands `text` to the host's stream: 1 is standard output and 2
         // standard error.
+        @intrinsic("host.write")
+        _write(text: string, stream: int) static
+    si
+
+    /// Writes text to a stream, a line or a piece at a time.
+    class TextWriter abstract is
+        init() is si
+
+        /// Writes `text`.
+        ///
+        /// - text: the text to write
+        write(text: string);
+
+        /// Writes `value` as its `to_string` text.
+        ///
+        /// - value: the value to write
+        write(value: object) =>
+            write(value.to_string())
+
+        /// Writes a line break.
+        write_line() =>
+            write("\n")
+
+        /// Writes `text` and then a line break.
+        ///
+        /// - text: the text to write
+        write_line(text: string) is
+            write(text)
+            write("\n")
+        si
+
+        /// Writes `value` as its `to_string` text, then a line break.
+        ///
+        /// - value: the value to write
+        write_line(value: object) =>
+            write_line(value.to_string())
+
+        /// Writes out anything the writer holds back. The host's streams
+        /// hold nothing back, so this does nothing there.
+        flush() is si
+    si
+
+    // A writer over one of the host's streams: 1 is standard output and 2
+    // standard error.
+    class _HOST_WRITER: TextWriter is
+        _stream: int
+
+        init(stream: int) is
+            super.init()
+            _stream = stream
+        si
+
+        write(text: string) =>
+            _write(text, _stream)
+
         @intrinsic("host.write")
         _write(text: string, stream: int) static
     si

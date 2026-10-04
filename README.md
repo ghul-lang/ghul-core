@@ -44,6 +44,10 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   patterns
 - `tests/string_members` — the string members: search, trim, split, replace,
   padding, casing and comparison
+- `tests/string_hash` — strings that are `=~` hash alike, and a union with a
+  string field compared by its contents
+- `tests/std_writers` — standard output and standard error written through
+  `IO.Std` and through its `out` and `error` writers
 - `tests/tuples` — tuple elements read by position and by name, and a
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
