@@ -7,7 +7,7 @@ namespace Collections is
 
         /// An empty list.
         init() is
-            _items = Ghul._array_new[T](4);
+            _items = Ghul._array_new[T](0);
             _count = 0;
         si
 
@@ -23,11 +23,12 @@ namespace Collections is
             _count = 0;
         si
 
-        /// A list holding the elements of `source`, in order.
+        /// A list holding the elements of `source`, in order, with room for
+        /// exactly that many where `source` knows its count.
         ///
         /// - source: the elements to copy
         init(source: Iterable[T]) is
-            _items = Ghul._array_new[T](4);
+            _items = Ghul._array_new[T](if let bag: Bag[T] = source then bag.count else 0 fi);
             _count = 0;
 
             add_range(source);
@@ -188,7 +189,7 @@ namespace Collections is
                 return;
             fi
 
-            let size mut = _items.count * 2;
+            let size mut = if _items.count == 0 then 4 else _items.count * 2 fi;
 
             if size < needed then
                 size = needed;

@@ -1,10 +1,5 @@
 // A double or a single writes the shortest text that reads back as the same
 // value, as .NET writes it in the invariant culture.
-//
-// Floating-point text is not yet compiled for the wasm target, and its
-// diagnostics name the core library's own files, so the one type error in
-// entry stops the program before code generation; it becomes a run of the
-// program, printing the table .NET prints, once the backend compiles it.
 texts() -> string[] =>
     [
         0.1.to_string(), (0.1 + 0.2).to_string(), 1.0e15.to_string(), 1.0e21.to_string(),
@@ -13,5 +8,7 @@ texts() -> string[] =>
     ]
 
 entry() is
-    let wrong: int = texts()
+    for text in texts() do
+        IO.Std.write_line(text)
+    od
 si
