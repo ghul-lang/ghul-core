@@ -1,2 +1,0 @@
-ranges.ghul: 22,1..22,6: error: code generation for the runtime operation NEW_RANGE is not supported on the wasm target
-ranges.ghul: 6,1..6,6: error: code generation for the runtime operation NEW_RANGE is not supported on the wasm target

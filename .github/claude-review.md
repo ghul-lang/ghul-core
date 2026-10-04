@@ -51,3 +51,7 @@ removed or renamed public type or member, or a signature a program written
 against the previous version no longer compiles against. Minor means
 additions: new public types or members. A real body replacing a stub, or a
 fix that leaves signatures alone, is a patch.
+
+While `VERSION` is below 1.0.0, a breaking change is a minor bump, as semver
+treats a 0.x release; moving to 1.0.0 is the maintainer's decision and is not
+requested in review.
