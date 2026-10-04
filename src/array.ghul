@@ -1,15 +1,17 @@
 namespace Ghul is
-    // The compiler constructs the array family itself; the library
-    // supplies its members. A member marked `@intrinsic` lowers to the
-    // operation it names, so its body is never compiled.
+    // The compiler constructs the array family itself, as a class; the
+    // library supplies its members. A member marked `@intrinsic` lowers to
+    // the operation it names wherever the receiver is known to be an
+    // array, its own body included, so each body below is that operation.
+    // The body is what a call reaching the member through a trait runs.
     partial ARRAY is
         /// The number of elements.
         @intrinsic("array.count")
-        count: int => throw NotImplementedException("array.count");
+        count: int => count;
 
         /// The element at `index`, counting from zero.
         @intrinsic("array.get")
-        [index: int]: E => throw NotImplementedException("array[index]");
+        [index: int]: E => self[index];
 
         /// An iterator over the elements, in order.
         iterator: Collections.Iterator[E] => ARRAY_ITERATOR[E](self);
