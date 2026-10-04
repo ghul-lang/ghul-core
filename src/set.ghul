@@ -1,0 +1,49 @@
+namespace Collections is
+    /// A set held in a hash table over its elements' `=~` and
+    /// `get_hash_code`.
+    class SET[T]: Set[T], MutableSet[T] is
+        _map: MAP[T, bool];
+
+        /// An empty set.
+        init() is
+            _map = MAP[T, bool]();
+        si
+
+        /// A set holding the elements of `source`, each once.
+        ///
+        /// - source: the elements to add
+        init(source: Iterable[T]) is
+            _map = MAP[T, bool]();
+
+            for value in source do
+                add(value);
+            od
+        si
+
+        /// The number of elements.
+        count: int => _map.count;
+
+        /// Adds `value`, answering whether the set did not already hold it.
+        ///
+        /// - value: the element to add
+        add(value: T) -> bool => _map.try_add(value, true);
+
+        /// Removes `value`, answering whether the set held it.
+        ///
+        /// - value: the element to remove
+        remove(value: T) -> bool => _map.remove(value);
+
+        /// Whether the set holds `value`.
+        ///
+        /// - value: the element to look for
+        contains(value: T) -> bool => _map.contains_key(value);
+
+        /// Removes every element.
+        clear() is
+            _map.clear();
+        si
+
+        /// An iterator over the elements.
+        iterator: Iterator[T] => _map.keys.iterator;
+    si
+si

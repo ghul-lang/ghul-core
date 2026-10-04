@@ -58,4 +58,83 @@ namespace Collections is
         /// - index: the position of the element to remove
         remove_at(index: int);
     si
+
+    /// A read-only map from keys to values, iterated as key and value pairs.
+    trait Map[K, V]: Bag[KEY_VALUE_PAIR[K, V]] is
+        /// The value `key` maps to; throws if the map has no such key.
+        [key: K]: V;
+
+        /// Whether the map has `key`.
+        ///
+        /// - key: the key to look for
+        contains_key(key: K) -> bool;
+
+        /// The keys.
+        keys: Iterable[K];
+
+        /// The values.
+        values: Iterable[V];
+    si
+
+    /// A map whose entries can be added, replaced and removed.
+    trait MutableMap[K, V]: MutableBag[KEY_VALUE_PAIR[K, V]] is
+        /// The value `key` maps to; throws if the map has no such key.
+        /// Assigning adds the key or replaces its value.
+        [key: K]: V, = value;
+
+        /// Adds `key` mapping to `value`; throws if the map already has
+        /// `key`.
+        ///
+        /// - key: the key to add
+        /// - value: the value it maps to
+        add(key: K, value: V);
+
+        /// Removes `key`, answering whether the map had it.
+        ///
+        /// - key: the key to remove
+        remove(key: K) -> bool;
+
+        /// Whether the map has `key`.
+        ///
+        /// - key: the key to look for
+        contains_key(key: K) -> bool;
+
+        /// The keys.
+        keys: Iterable[K];
+
+        /// The values.
+        values: Iterable[V];
+    si
+
+    /// A read-only set: a collection holding no element twice.
+    trait Set[E]: Bag[E] is
+        /// Whether the set holds `value`.
+        ///
+        /// - value: the element to look for
+        contains(value: E) -> bool;
+    si
+
+    /// A set elements can be added to and removed from.
+    trait MutableSet[E]: Iterable[E] is
+        /// The number of elements.
+        count: int;
+
+        /// Adds `value`, answering whether the set did not already hold it.
+        ///
+        /// - value: the element to add
+        add(value: E) -> bool;
+
+        /// Removes `value`, answering whether the set held it.
+        ///
+        /// - value: the element to remove
+        remove(value: E) -> bool;
+
+        /// Whether the set holds `value`.
+        ///
+        /// - value: the element to look for
+        contains(value: E) -> bool;
+
+        /// Removes every element.
+        clear();
+    si
 si

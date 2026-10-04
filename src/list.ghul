@@ -116,6 +116,45 @@ namespace Collections is
             Ghul._array_set(_items, _count, _[T]);
         si
 
+        /// The position of the first element `=~` to `value`, or -1 where
+        /// none is.
+        ///
+        /// - value: the element to look for
+        index_of(value: T) -> int is
+            let i mut = 0;
+
+            while i < _count do
+                if _items[i] =~ value then
+                    return i;
+                fi
+
+                i = i + 1;
+            od
+
+            return -1;
+        si
+
+        /// Whether any element is `=~` to `value`.
+        ///
+        /// - value: the element to look for
+        contains(value: T) -> bool => index_of(value) >= 0;
+
+        /// Removes the first element `=~` to `value`, answering whether
+        /// there was one.
+        ///
+        /// - value: the element to remove
+        remove(value: T) -> bool is
+            let index = index_of(value);
+
+            if index < 0 then
+                return false;
+            fi
+
+            remove_at(index);
+
+            return true;
+        si
+
         /// Removes every element.
         clear() is
             let i mut = 0;
