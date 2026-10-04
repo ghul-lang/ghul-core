@@ -1,12 +1,44 @@
 namespace Ghul is
     // The compiler constructs the array family itself; the library
-    // supplies its members.
+    // supplies its members. A member marked `@intrinsic` lowers to the
+    // operation it names, so its body is never compiled.
     partial ARRAY is
+        /// The number of elements.
+        @intrinsic("array.count")
         count: int => throw NotImplementedException("array.count");
 
+        /// The element at `index`, counting from zero.
+        @intrinsic("array.get")
         [index: int]: E => throw NotImplementedException("array[index]");
 
-        iterator: Collections.Iterator[E] =>
-            throw NotImplementedException("array.iterator");
+        /// An iterator over the elements, in order.
+        iterator: Collections.Iterator[E] => ARRAY_ITERATOR[E](self);
+    si
+
+    /// Iterates the elements of an array in order.
+    class ARRAY_ITERATOR[E]: Collections.Iterator[E] is
+        _array: E[];
+        _index: int;
+
+        /// An iterator positioned before the first element of `array`.
+        ///
+        /// - array: the array to iterate
+        init(array: E[]) is
+            _array = array;
+            _index = -1;
+        si
+
+        /// Moves to the next element, answering whether there is one.
+        move_next() -> bool is
+            _index = _index + 1;
+
+            return _index < _array.count;
+        si
+
+        /// The element the iterator is positioned at.
+        current: E => _array[_index];
+
+        /// Releases nothing: an array holds no resource.
+        dispose() is si
     si
 si
