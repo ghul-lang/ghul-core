@@ -32,6 +32,15 @@ namespace Ghul is
         si
     si
 
+    /// Thrown when an object is not in a state where the requested operation
+    /// can run, such as reading the value of an absent `MAYBE`.
+    class InvalidOperationException: Exception is
+        /// - message: why the operation cannot run
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
     /// Thrown by an `assert` whose condition is false.
     class AssertFailedException: Exception is
         /// - message: the assert's own message, or where it is and what it

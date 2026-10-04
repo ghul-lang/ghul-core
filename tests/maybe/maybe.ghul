@@ -1,0 +1,22 @@
+// MAYBE and KEY_VALUE_PAIR behave as they do on .NET: a MAYBE is absent or
+// holds a value, and a pair carries a key and a value.
+//
+// Structs are not yet compiled for the wasm target, so calling present
+// and pair records the diagnostics that say so until they are.
+present() -> bool is
+    let none = Ghul.MAYBE[int]()
+    let some = Ghul.MAYBE[int](42)
+
+    return !none.has_value /\ some.has_value /\ some.value == 42
+si
+
+pair() -> int is
+    let p = Collections.KEY_VALUE_PAIR[string, int]("answer", 42)
+    let (k = key, v = value) = p
+
+    return p.value + v
+si
+
+entry() is
+    let ok = present() /\ pair() == 84
+si

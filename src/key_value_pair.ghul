@@ -1,0 +1,20 @@
+namespace Collections is
+    /// A key and the value it maps to: what iterating a map yields.
+    struct KEY_VALUE_PAIR[K, V] is
+        _key: K field
+        _value: V field
+
+        /// The key.
+        key: K pure => _key
+
+        /// The value the key maps to.
+        value: V pure => _value
+
+        /// - key: the key
+        /// - value: the value the key maps to
+        init(key: K, value: V) pure is
+            _key = key
+            _value = value
+        si
+    si
+si
