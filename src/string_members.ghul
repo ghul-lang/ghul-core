@@ -28,6 +28,10 @@ namespace Ghul is
         /// - value: the code unit to find
         /// - start: where the search begins
         index_of(value: char, start: int) -> int is
+            if start < 0 \/ start > length then
+                throw ArgumentOutOfRangeException("start")
+            fi
+
             let i mut = start
 
             while i < length do
@@ -52,6 +56,10 @@ namespace Ghul is
         /// - value: the text to find
         /// - start: where the search begins
         index_of(value: string, start: int) -> int is
+            if start < 0 \/ start > length then
+                throw ArgumentOutOfRangeException("start")
+            fi
+
             let last = length - value.length
             let i mut = start
 
