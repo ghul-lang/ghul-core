@@ -25,10 +25,13 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `ghul-project.json` — the library manifest (#3212 shape): name, targets,
   sources. Nothing reads it yet; the `ghul` tool that will (#3211)
   consumes the library from Git as source (#3179)
-- `src/` — one file per type
+- `src/` — one file per type, plus `intrinsics.ghul`, the operators on the
+  built-in types, kept in step with ghul-runtime's
 - `tests/hello` — the program the library exists to compile
 - `tests/type-error` — a program whose one type error must report
   against the library's declarations
+- `tests/operators` — a program using the scalar operators, which must
+  resolve with no error before code generation
 
 Each test directory is a ghul-test folder: an MSBuild project that
 compiles the program together with the library's sources under

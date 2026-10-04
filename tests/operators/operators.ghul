@@ -1,0 +1,12 @@
+// The scalar operators the core library declares resolve as they do on
+// .NET: arithmetic, bitwise and shift operators on the operand types,
+// ordering and the boolean connectives as global operators.
+f(a: int, b: int, wide: long, price: decimal) -> bool is
+    let sum = a + b * 2 - (a << 1) % 3
+    let masked = (wide >>> 4) & 255L
+    let total = price + 2.25m
+
+    return sum < 100 /\ masked >= 0L \/ !(a == b)
+si
+
+entry() is si
