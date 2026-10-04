@@ -1,7 +1,17 @@
 namespace Ghul is
     partial string is
-        length: int => throw NotImplementedException("string.length");
+        /// The number of UTF-16 code units the string holds.
+        length: int => _string_length(self)
 
-        [index: int]: char => throw NotImplementedException("string[index]");
+        /// The UTF-16 code unit at `index`.
+        ///
+        /// - index: the position of the code unit, from 0
+        [index: int]: char => _string_char_at(self, index)
     si
+
+    @intrinsic("string.length")
+    _string_length(text: string) -> int pure
+
+    @intrinsic("string.char_at")
+    _string_char_at(text: string, index: int) -> char pure
 si
