@@ -1,2 +1,0 @@
-exceptions.ghul(8,1,8,6): error : code generation for a value of type !!! is not supported on the wasm target [test.ghulproj]
-exceptions.ghul(8,1,8,6): error : code generation for try is not supported on the wasm target [test.ghulproj]
