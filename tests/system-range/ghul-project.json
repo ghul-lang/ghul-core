@@ -1,0 +1,9 @@
+{
+    "name": "system-range",
+    "targets": ["wasm"],
+    "sources": ["*.ghul"],
+    "options": { "suppress": ["assembly-attribute-unmatched"] },
+    "dependencies": {
+        "ghul-core": { "path": "../.." }
+    }
+}
