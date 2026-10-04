@@ -1,1 +1,0 @@
-list.ghul(6,1,6,4): error : code generation for the runtime operation NEW_RANGE is not supported on the wasm target [test.ghulproj]

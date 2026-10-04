@@ -1,10 +1,5 @@
 // The string members behave as they do on .NET: ordinal search and
 // comparison, .NET's white space, ASCII casing.
-//
-// The string members are not yet compiled for the wasm target, and their
-// diagnostics name the core library's own files, so the one type error in
-// entry stops the program before code generation; it becomes a run of the
-// program once the backend compiles them.
 check() -> int is
     let text = "  Hello, World  "
     let trimmed = text.trim()
@@ -31,5 +26,5 @@ check() -> int is
 si
 
 entry() is
-    let score: string = check()
+    IO.Std.write_line("{check()}")
 si

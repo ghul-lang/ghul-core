@@ -1,8 +1,8 @@
 // The range operators produce the range types the core library declares,
 // which a for loop iterates and which compare as they do on .NET.
 //
-// Structs are not yet compiled for the wasm target, so calling total and
-// same records the diagnostics that say so until they are.
+// The range types are not yet constructed by the wasm target, so calling
+// total and same records the diagnostics that say so until they are.
 total() -> int is
     let sum mut = 0
 
