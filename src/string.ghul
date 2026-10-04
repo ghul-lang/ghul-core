@@ -14,4 +14,10 @@ namespace Ghul is
 
     @intrinsic("string.char_at")
     _string_char_at(text: string, index: int) -> char pure
+
+    @intrinsic("string.concat")
+    _string_concat(left: string?, right: string?) -> string pure
+
+    @intrinsic("string.from_char")
+    _string_from_char(unit: char) -> string pure
 si
