@@ -35,6 +35,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   resolve with no error before code generation
 - `tests/comparison` — `=~` and the relational operators over each scalar
   type
+- `tests/tuples` — tuple elements read by position and by name, and a
+  tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
   wasm target, each with the constructor it uses
 

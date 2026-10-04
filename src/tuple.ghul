@@ -1,0 +1,195 @@
+namespace Ghul is
+    // The compiler constructs the tuple families itself, with type
+    // parameters T1 to Tn; the library supplies the elements, which are
+    // what `.`0`, `.`1` and so on read, and a constructor taking every
+    // element.
+
+    partial TUPLE_1 is
+        /// The first element.
+        `0: T1 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        init(e0: T1) is
+            `0 = e0
+        si
+    si
+
+    partial TUPLE_2 is
+        /// The first element.
+        `0: T1 field
+
+        /// The second element.
+        `1: T2 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        /// - e1: the second element
+        init(e0: T1, e1: T2) is
+            `0 = e0
+            `1 = e1
+        si
+    si
+
+    partial TUPLE_3 is
+        /// The first element.
+        `0: T1 field
+
+        /// The second element.
+        `1: T2 field
+
+        /// The third element.
+        `2: T3 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        /// - e1: the second element
+        /// - e2: the third element
+        init(e0: T1, e1: T2, e2: T3) is
+            `0 = e0
+            `1 = e1
+            `2 = e2
+        si
+    si
+
+    partial TUPLE_4 is
+        /// The first element.
+        `0: T1 field
+
+        /// The second element.
+        `1: T2 field
+
+        /// The third element.
+        `2: T3 field
+
+        /// The fourth element.
+        `3: T4 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        /// - e1: the second element
+        /// - e2: the third element
+        /// - e3: the fourth element
+        init(e0: T1, e1: T2, e2: T3, e3: T4) is
+            `0 = e0
+            `1 = e1
+            `2 = e2
+            `3 = e3
+        si
+    si
+
+    partial TUPLE_5 is
+        /// The first element.
+        `0: T1 field
+
+        /// The second element.
+        `1: T2 field
+
+        /// The third element.
+        `2: T3 field
+
+        /// The fourth element.
+        `3: T4 field
+
+        /// The fifth element.
+        `4: T5 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        /// - e1: the second element
+        /// - e2: the third element
+        /// - e3: the fourth element
+        /// - e4: the fifth element
+        init(e0: T1, e1: T2, e2: T3, e3: T4, e4: T5) is
+            `0 = e0
+            `1 = e1
+            `2 = e2
+            `3 = e3
+            `4 = e4
+        si
+    si
+
+    partial TUPLE_6 is
+        /// The first element.
+        `0: T1 field
+
+        /// The second element.
+        `1: T2 field
+
+        /// The third element.
+        `2: T3 field
+
+        /// The fourth element.
+        `3: T4 field
+
+        /// The fifth element.
+        `4: T5 field
+
+        /// The sixth element.
+        `5: T6 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        /// - e1: the second element
+        /// - e2: the third element
+        /// - e3: the fourth element
+        /// - e4: the fifth element
+        /// - e5: the sixth element
+        init(e0: T1, e1: T2, e2: T3, e3: T4, e4: T5, e5: T6) is
+            `0 = e0
+            `1 = e1
+            `2 = e2
+            `3 = e3
+            `4 = e4
+            `5 = e5
+        si
+    si
+
+    partial TUPLE_7 is
+        /// The first element.
+        `0: T1 field
+
+        /// The second element.
+        `1: T2 field
+
+        /// The third element.
+        `2: T3 field
+
+        /// The fourth element.
+        `3: T4 field
+
+        /// The fifth element.
+        `4: T5 field
+
+        /// The sixth element.
+        `5: T6 field
+
+        /// The seventh element.
+        `6: T7 field
+
+        /// A tuple of the given elements.
+        ///
+        /// - e0: the first element
+        /// - e1: the second element
+        /// - e2: the third element
+        /// - e3: the fourth element
+        /// - e4: the fifth element
+        /// - e5: the sixth element
+        /// - e6: the seventh element
+        init(e0: T1, e1: T2, e2: T3, e3: T4, e4: T5, e5: T6, e6: T7) is
+            `0 = e0
+            `1 = e1
+            `2 = e2
+            `3 = e3
+            `4 = e4
+            `5 = e5
+            `6 = e6
+        si
+    si
+si
