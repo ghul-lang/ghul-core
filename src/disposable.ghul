@@ -1,0 +1,8 @@
+namespace Ghul is
+    /// A value that holds something to release when it is no longer
+    /// needed. `use` releases it at the end of the block that took it.
+    trait Disposable open is
+        /// Releases what the value holds.
+        dispose()
+    si
+si
