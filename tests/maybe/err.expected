@@ -1,1 +1,1 @@
-../../src/maybe.ghul(36,9,36,18): error : code generation for a CONSTRAINED call is not supported on the wasm target [test.ghulproj]
+../../src/maybe.ghul(57,9,57,18): error : code generation for a call to to_string on int is not supported on the wasm target [test.ghulproj]

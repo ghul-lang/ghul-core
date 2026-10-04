@@ -23,6 +23,27 @@ namespace Ghul is
                 throw InvalidOperationException("maybe has no value")
             fi
 
+        /// Two `MAYBE` values are equal when both are absent, or both hold equal values.
+        =~(other: MAYBE[T]) -> bool pure is
+            if _has_value != other._has_value then
+                return false
+            fi
+
+            if !_has_value then
+                return true
+            fi
+
+            _value =~ other._value
+        si
+
+        /// Hashes like `Nullable[T]`: zero when absent, otherwise the value's hash.
+        get_hash_code() -> int pure =>
+            if _has_value then
+                _value.get_hash_code()
+            else
+                0
+            fi
+
         init() pure is
         si
 

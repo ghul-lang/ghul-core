@@ -1,13 +1,14 @@
 // MAYBE and KEY_VALUE_PAIR behave as they do on .NET: a MAYBE is absent or
-// holds a value, and a pair carries a key and a value.
+// holds a value and compares by it, and a pair carries a key and a value.
 //
-// Structs are not yet compiled for the wasm target, so calling present
-// and pair records the diagnostics that say so until they are.
+// MAYBE[int]'s to_string calls to_string on an int, which the wasm target
+// does not yet compile, so the test records the diagnostic until it does.
 present() -> bool is
     let none = Ghul.MAYBE[int]()
     let some = Ghul.MAYBE[int](42)
 
-    return !none.has_value /\ some.has_value /\ some.value == 42
+    return !none.has_value /\ some.has_value /\ some.value == 42 /\
+        some =~ Ghul.MAYBE[int](42) /\ none =~ Ghul.MAYBE[int]() /\ !(some =~ none)
 si
 
 pair() -> int is
