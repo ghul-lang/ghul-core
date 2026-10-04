@@ -34,5 +34,11 @@ entry() -> int is
     // 32: a range whose start is after its end is rejected
     result = result + bit(thrown(10, System.Range(System.Index(4, false), System.Index(2, false))), 32)
 
+    // 64: the static members give the same positions as the constructors
+    let whole = System.Range.all.get_offset_and_length(4)
+    let tail_from = System.Range.start_at(System.Index.from_end(1)).get_offset_and_length(4)
+    let head_to = System.Range.end_at(System.Index.from_start(2)).get_offset_and_length(4)
+    result = result + bit(whole.offset == 0 /\ whole.length == 4 /\ tail_from.offset == 3 /\ tail_from.length == 1 /\ head_to.offset == 0 /\ head_to.length == 2, 64)
+
     return result
 si

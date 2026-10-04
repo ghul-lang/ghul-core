@@ -27,6 +27,22 @@ namespace System is
             is_from_end = from_end
         si
 
+        /// The index of the first element.
+        start: Index static => Index(0, false)
+
+        /// The index one past the last element.
+        end: Index static => Index(0, true)
+
+        /// An index `value` elements from the start.
+        ///
+        /// - value: the count of elements, which must not be negative
+        from_start(value: int) -> Index static => Index(value, false)
+
+        /// An index `value` elements back from the end.
+        ///
+        /// - value: the count of elements, which must not be negative
+        from_end(value: int) -> Index static => Index(value, true)
+
         /// The position this index stands for in a sequence of `length`
         /// elements, counted from its start.
         ///
@@ -52,6 +68,19 @@ namespace System is
             self.start = start
             self.end = end
         si
+
+        /// The range covering a whole sequence.
+        all: Range static => Range(Index.start, Index.end)
+
+        /// The range from `start` to the end of a sequence.
+        ///
+        /// - start: where the range starts
+        start_at(start: Index) -> Range static => Range(start, Index.end)
+
+        /// The range from the start of a sequence up to but not including `end`.
+        ///
+        /// - end: where the range ends, not included
+        end_at(end: Index) -> Range static => Range(Index.start, end)
 
         /// Where this range starts in a sequence of `length` elements, and how
         /// many elements it covers there.
