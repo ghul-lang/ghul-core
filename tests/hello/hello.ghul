@@ -1,5 +1,5 @@
-// Interpolation is not yet compiled for the wasm target, so this records
-// the diagnostic that says so until it is.
+// Writes a line for each name through interpolation, then throws an
+// exception nothing catches, which ends the program with status 134.
 
 entry() is
     let names = ["a", "b"];

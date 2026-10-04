@@ -1,7 +1,6 @@
 // The builder an interpolation accumulates its text in, and the text the
-// core library gives char, int and long. The wasm target cannot generate
-// these calls yet, so the expectation records what it reports; it becomes
-// a run of the program once the compiler can (ghul-lang/ghul#3306).
+// core library gives char, int and long. The program's exit status is the
+// length of the text built: 2, 10 and 1 characters.
 f(count: int, wide: long, letter: char) -> string is
     let builder = Ghul.STRING_BUILDER()
 
