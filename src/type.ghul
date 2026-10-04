@@ -1,0 +1,30 @@
+namespace Ghul is
+    /// The type of a value, as `get_type` and `typeof` give it. Each type
+    /// has one, so two are the same object exactly when they stand for the
+    /// same type.
+    @suppress("non-upper-snake-case-name")
+    class Type is
+        _full_name: string
+
+        /// - full_name: the type's name, qualified by its namespace
+        init(full_name: string) is
+            _full_name = full_name
+        si
+
+        /// The type's name, qualified by its namespace, with its type
+        /// arguments in brackets.
+        full_name: string => _full_name
+
+        /// The type's name, without its namespace or its type arguments.
+        name: string is
+            let arguments = _full_name.index_of('[')
+            let end = if arguments >= 0 then arguments else _full_name.length fi
+            let start = _full_name.substring(0, end).last_index_of('.') + 1
+
+            return _full_name.substring(start, end - start)
+        si
+
+        /// The type's full name.
+        to_string() -> string => _full_name
+    si
+si
