@@ -4,17 +4,81 @@
 // notwithstanding: the rule for them is mechanical and the warning is
 // taught it in the compiler's issue 3233.
 namespace Ghul is
+    /// The base of every exception: what `throw` raises and `catch` handles.
     class Exception is
+        /// What went wrong, for a person to read.
         message: string;
 
+        /// - message: what went wrong
         init(message: string) is
             self.message = message;
         si
     si
 
+    /// Thrown by a member that has no body to run: a body-less override.
     class NotImplementedException: Exception is
+        /// - member: the member that has no body
         init(member: string) is
             super.init(member);
+        si
+    si
+
+    /// Thrown by a member this type does not support, such as the `reset`
+    /// synthesised for an iterator that cannot start again.
+    class NotSupportedException: Exception is
+        init() is
+            super.init("the operation is not supported");
+        si
+
+        /// - message: what is not supported
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
+    /// Thrown by an `assert` whose condition is false.
+    class AssertFailedException: Exception is
+        /// - message: the assert's own message, or where it is and what it
+        ///   tests when it gives none
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
+    /// Thrown by a cast that cannot convert its value to the target type.
+    class InvalidCastException: Exception is
+        init() is
+            super.init("the cast is not valid");
+        si
+
+        /// - message: what could not be converted
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
+    /// The base of the exceptions arithmetic raises.
+    class ArithmeticException: Exception is
+        init() is
+            super.init("the arithmetic operation failed");
+        si
+
+        /// - message: what failed
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
+    /// Thrown by arithmetic or a conversion whose result does not fit its
+    /// type.
+    class OverflowException: ArithmeticException is
+        init() is
+            super.init("the result does not fit its type");
+        si
+
+        /// - message: what overflowed
+        init(message: string) is
+            super.init(message);
         si
     si
 si
