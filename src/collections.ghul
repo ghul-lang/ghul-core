@@ -1,18 +1,19 @@
 namespace Collections is
     // The iteration surface a `for` loop drives: move_next advances,
     // current reads the element reached, and the iterator property of
-    // an iterable hands one out.
-    trait Iterator[E] is
+    // an iterable hands one out. All three are covariant, as their
+    // .NET counterparts are, so Iterable[CAT] is an Iterable[Animal].
+    trait Iterator[E: out] is
         move_next() -> bool;
         current: E;
         dispose();
     si
 
-    trait Iterable[E] is
+    trait Iterable[E: out] is
         iterator: Iterator[E];
     si
 
-    trait List[E]: Iterable[E] is
+    trait List[E: out]: Iterable[E] is
         count: int;
         [index: int]: E;
     si
