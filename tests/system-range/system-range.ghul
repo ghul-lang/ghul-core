@@ -40,5 +40,9 @@ entry() -> int is
     let head_to = System.Range.end_at(System.Index.from_start(2)).get_offset_and_length(4)
     result = result + bit(whole.offset == 0 /\ whole.length == 4 /\ tail_from.offset == 3 /\ tail_from.length == 1 /\ head_to.offset == 0 /\ head_to.length == 2, 64)
 
+    // 128: the index and the range write themselves as they do on .NET
+    let written = System.Range(System.Index(1, false), System.Index(2, true))
+    result = result + bit(System.Index(5, false).to_string() =~ "5" /\ System.Index(3, true).to_string() =~ "^3" /\ written.to_string() =~ "1..^2", 128)
+
     return result
 si
