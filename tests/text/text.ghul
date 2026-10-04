@@ -1,0 +1,15 @@
+// The builder an interpolation accumulates its text in, and the text the
+// core library gives char, int and long. The wasm target cannot generate
+// these calls yet, so the expectation records what it reports; it becomes
+// a run of the program once the compiler can (ghul-lang/ghul#3306).
+f(count: int, wide: long, letter: char) -> string is
+    let builder = Ghul.STRING_BUILDER()
+
+    builder.append(count.to_string())
+    builder.append(wide.to_string())
+    builder.append(letter.to_string())
+
+    return builder.to_string()
+si
+
+entry() -> int => f(42, 9000000000L, 'Z').length
