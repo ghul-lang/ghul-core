@@ -1,0 +1,6 @@
+maybe.ghul(13,1,13,5): error : code generation for a local of type Collections.KEY_VALUE_PAIR[string,int] is not supported on the wasm target [test.ghulproj]
+maybe.ghul(13,1,13,5): error : code generation for a struct method call is not supported on the wasm target [test.ghulproj]
+maybe.ghul(13,1,13,5): error : code generation for constructing a Collections.KEY_VALUE_PAIR[string,int] is not supported on the wasm target [test.ghulproj]
+maybe.ghul(6,1,6,8): error : code generation for a local of type Ghul.MAYBE[int] is not supported on the wasm target [test.ghulproj]
+maybe.ghul(6,1,6,8): error : code generation for a struct method call is not supported on the wasm target [test.ghulproj]
+maybe.ghul(6,1,6,8): error : code generation for constructing a Ghul.MAYBE[int] is not supported on the wasm target [test.ghulproj]
