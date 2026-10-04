@@ -12,5 +12,11 @@ EMPTY
 Shape.DOT(size = 2)
 Shape.BLANK
 (1, one)
+[1, 2, 3]
+["one", "two"]
+[POINT(x = 1, y = 2), POINT(x = 3, y = 4)]
+[[1, 2], [3]]
+[a, b]
+[1, 2, 3, ...]
 POINT(x = 5, y = 6) true (2, z)
 (1, "one", 'c', true)
