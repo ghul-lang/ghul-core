@@ -1,4 +1,6 @@
 namespace Ghul is
+    use Text.STRING_BUILDER
+
     /// Implemented by a type that controls how `$` and `inspect` render it.
     trait Displayable open is
         /// Writes this value's rendering to `state`.
