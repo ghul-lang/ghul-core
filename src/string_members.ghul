@@ -1,4 +1,6 @@
 namespace Ghul is
+    use Text.STRING_BUILDER
+
     partial string is
         /// The code units from `start` to the end.
         ///

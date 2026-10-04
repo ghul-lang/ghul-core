@@ -1,4 +1,4 @@
-namespace Ghul is
+namespace Text is
     /// Accumulates the text of an interpolated string, a piece at a time.
     class STRING_BUILDER is
         _text: string?
