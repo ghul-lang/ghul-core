@@ -10,8 +10,17 @@ namespace Ghul is
 
         equals(other: object?) -> bool =>
             throw NotImplementedException("object.equals");
+
+        /// The type of the object. A member of the same name declared on a
+        /// type hides this rather than overriding it.
+        @intrinsic("object.get_type")
+        get_type() -> Type =>
+            _type_of(self);
     si
 
     @intrinsic("object.type_name")
     _type_name(value: object) -> string pure
+
+    @intrinsic("object.get_type")
+    _type_of(value: object) -> Type pure
 si
