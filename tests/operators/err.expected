@@ -1,1 +1,5 @@
-internal(1,1,1,2): error : code generation for the wasm target is not supported [test.ghulproj]
+operators.ghul(15,1,15,6): error : code generation for a decimal literal is not supported on the wasm target [test.ghulproj]
+operators.ghul(7,1,7,2): error : code generation for a local of type decimal is not supported on the wasm target [test.ghulproj]
+operators.ghul(7,1,7,2): error : code generation for a struct method call is not supported on the wasm target [test.ghulproj]
+operators.ghul(7,1,7,2): error : code generation for an argument of type decimal is not supported on the wasm target [test.ghulproj]
+operators.ghul(7,1,7,2): error : code generation for decimal arithmetic is not supported on the wasm target [test.ghulproj]
