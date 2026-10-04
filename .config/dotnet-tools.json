@@ -3,7 +3,7 @@
   "isRoot": true,
   "tools": {
     "ghul.test": {
-      "version": "5.0.5",
+      "version": "5.1.0",
       "commands": [
         "ghul-test"
       ],
@@ -13,6 +13,13 @@
       "version": "64.20.0",
       "commands": [
         "ghul-compiler"
+      ],
+      "rollForward": false
+    },
+    "ghul.cli": {
+      "version": "0.46.0",
+      "commands": [
+        "ghul"
       ],
       "rollForward": false
     }

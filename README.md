@@ -56,19 +56,22 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
   wasm target, each with the constructor it uses
 
-Each test directory is a ghul-test folder: an MSBuild project that
-compiles the program together with the library's sources under
-`--target wasm`, and expectation files for what the compiler should say.
-A test that builds runs under Node. Where the wasm target cannot yet
-compile what a test exercises, its expectation is the diagnostic that
-says so, and a comment in the test names what it waits for.
+Each test directory is a ghul-cli project whose `ghul-project.json` takes
+ghul-core from this checkout (`"path": "../.."`), so the program compiles
+against the library's own sources as a user's wasm build would, with the
+pinned ghul-runtime after it. Beside it are expectation files for what the
+compiler should say and what the program prints. A test that builds runs
+under Node; `tests/float_text_dotnet` builds for .NET. Where the wasm
+target cannot yet compile what a test exercises, its expectation is the
+diagnostic that says so, and a comment in the test names what it waits for.
 
 ## Testing
 
 ```sh
 dotnet tool restore
-dotnet ghul-test --use-dotnet-build tests
+dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" tests
 ```
 
-The type-error test passes when the error names the member and its
-place. Compiling the library needs ghul.compiler 64.13.0 or later.
+Each project builds with the newest installed `ghul.compiler`, which ghul-cli
+installs if there is none. The type-error test passes when the error names
+the member and its place.

@@ -12,3 +12,4 @@ publish/
 **/*.sort
 **/*.err
 formatted/
+**/out/

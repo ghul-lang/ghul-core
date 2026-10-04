@@ -1,0 +1,5 @@
+{
+    "name": "float-text-dotnet",
+    "targets": ["dotnet"],
+    "sources": ["*.ghul", "../../src/float_text.ghul"]
+}
