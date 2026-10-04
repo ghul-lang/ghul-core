@@ -2,6 +2,9 @@
 // resolves to a class the library declares, with the constructors the
 // compiler uses: one taking a message, and none for those it makes with
 // no operands.
+//
+// try is not yet compiled for the wasm target, so this records the
+// diagnostics that say so until it is.
 entry() is
     let assert_failed: Ghul.Exception = Ghul.AssertFailedException("assert")
     let not_implemented: Ghul.Exception = Ghul.NotImplementedException("member")

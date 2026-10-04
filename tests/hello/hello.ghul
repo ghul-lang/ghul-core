@@ -1,3 +1,6 @@
+// Interpolation is not yet compiled for the wasm target, so this records
+// the diagnostic that says so until it is.
+
 entry() is
     let names = ["a", "b"];
 

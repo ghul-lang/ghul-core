@@ -31,8 +31,7 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/hello` — the program the library exists to compile
 - `tests/type-error` — a program whose one type error must report
   against the library's declarations
-- `tests/operators` — a program using the scalar operators, which must
-  resolve with no error before code generation
+- `tests/operators` — a program using the scalar operators
 - `tests/comparison` — `=~` and the relational operators over each scalar
   type
 - `tests/tuples` — tuple elements read by position and by name, and a
@@ -43,6 +42,9 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 Each test directory is a ghul-test folder: an MSBuild project that
 compiles the program together with the library's sources under
 `--target wasm`, and expectation files for what the compiler should say.
+A test that builds runs under Node. Where the wasm target cannot yet
+compile what a test exercises, its expectation is the diagnostic that
+says so, and a comment in the test names what it waits for.
 
 ## Testing
 

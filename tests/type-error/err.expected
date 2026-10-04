@@ -1,2 +1,1 @@
 type-error.ghul(4,28,4,41): error : member missing_thing not found in string [test.ghulproj]
-internal(1,1,1,2): error : code generation for the wasm target is not supported [test.ghulproj]

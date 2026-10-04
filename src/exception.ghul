@@ -1,10 +1,6 @@
-@@suppress("non-upper-snake-case-name")
-
-// Exceptions are PascalCase, concrete-class naming warnings
-// notwithstanding: the rule for them is mechanical and the warning is
-// taught it in the compiler's issue 3233.
 namespace Ghul is
     /// The base of every exception: what `throw` raises and `catch` handles.
+    @suppress("non-upper-snake-case-name")
     class Exception is
         /// What went wrong, for a person to read.
         message: string;

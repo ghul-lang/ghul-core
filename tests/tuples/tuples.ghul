@@ -1,5 +1,8 @@
 // A tuple's elements read by position and by name, and a tuple
 // destructures, as they do on .NET.
+//
+// Tuples are not yet compiled for the wasm target, so calling f records
+// the diagnostics that say so until they are.
 swap(pair: (int, bool)) -> (bool, int) => (pair.`1, pair.`0)
 
 f(named: (x: int, y: int)) -> int is
@@ -8,4 +11,6 @@ f(named: (x: int, y: int)) -> int is
     return if a then b + named.y else 0 fi
 si
 
-entry() is si
+entry() is
+    let _ = f((x = 1, y = 2))
+si
