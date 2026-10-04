@@ -1,7 +1,9 @@
 namespace Ghul is
     partial object is
+        /// The name of the object's type, unless the type gives text of its
+        /// own.
         to_string() -> string =>
-            throw NotImplementedException("object.to_string");
+            _type_name(self);
 
         get_hash_code() -> int =>
             throw NotImplementedException("object.get_hash_code");
@@ -9,4 +11,7 @@ namespace Ghul is
         equals(other: object?) -> bool =>
             throw NotImplementedException("object.equals");
     si
+
+    @intrinsic("object.type_name")
+    _type_name(value: object) -> string pure
 si

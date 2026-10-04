@@ -1,18 +1,36 @@
 namespace IO is
-    // The console, as .NET sees it: a static class rather than a
-    // namespace, so its writers sit alongside the readers and the
-    // stream properties a later tier adds.
+    /// The console: writers for the standard output stream.
     class Std is
-        write_line(text: string) static =>
-            throw Ghul.NotImplementedException("IO.Std.write_line");
+        /// Writes `text` and then a line break to standard output.
+        ///
+        /// - text: the text to write
+        write_line(text: string) static is
+            _write(text, 1)
+            _write("\n", 1)
+        si
 
+        /// Writes `value` as its `to_string` text, then a line break, to
+        /// standard output.
+        ///
+        /// - value: the value to write
         write_line(value: object) static =>
-            throw Ghul.NotImplementedException("IO.Std.write_line");
+            write_line(value.to_string())
 
+        /// Writes `text` to standard output.
+        ///
+        /// - text: the text to write
         write(text: string) static =>
-            throw Ghul.NotImplementedException("IO.Std.write");
+            _write(text, 1)
 
+        /// Writes `value` as its `to_string` text to standard output.
+        ///
+        /// - value: the value to write
         write(value: object) static =>
-            throw Ghul.NotImplementedException("IO.Std.write");
+            _write(value.to_string(), 1)
+
+        // Hands `text` to the host's stream: 1 is standard output and 2
+        // standard error.
+        @intrinsic("host.write")
+        _write(text: string, stream: int) static
     si
 si
