@@ -27,6 +27,10 @@ what a program can write, that is a finding.
   signature or behaviour differs from what the same ghūl program sees on .NET
   makes a program compile on one target and not the other. Nothing is declared
   under `System`.
+  While the wasm backend is under construction, a difference from the .NET
+  surface is acceptable when the pull request's description names the
+  ghul-lang/ghul issue that tracks closing it. A difference the description
+  does not name is still a finding.
 - **`Ghul.Internal` stays unnameable from source.** It holds facts the compiler
   establishes, not something a program chooses; a declaration that makes one
   of its members reachable by name from a program is a finding.
