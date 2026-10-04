@@ -42,6 +42,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/float_text_dotnet` — the floating-point formatter compiled for .NET
   and checked against .NET's own text for boundary values and random bit
   patterns
+- `tests/string_members` — the string members: search, trim, split, replace,
+  padding, casing and comparison
 - `tests/tuples` — tuple elements read by position and by name, and a
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the

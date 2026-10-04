@@ -230,25 +230,25 @@ namespace Ghul is
             return result
         si
 
-        /// The string with every occurrence of `old` replaced by `new`.
+        /// The string with every occurrence of `old_value` replaced by `new_value`.
         ///
-        /// - old: the text to replace; must not be empty
-        /// - new: the text to put in its place
-        replace(old: string, new: string) -> string is
-            if old.length == 0 then
-                throw ArgumentOutOfRangeException("old")
+        /// - old_value: the text to replace; must not be empty
+        /// - new_value: the text to put in its place
+        replace(old_value: string, new_value: string) -> string is
+            if old_value.length == 0 then
+                throw ArgumentOutOfRangeException("old_value")
             fi
 
             let result = STRING_BUILDER()
             let start mut = 0
-            let found mut = index_of(old, 0)
+            let found mut = index_of(old_value, 0)
 
             while found >= 0 do
                 result.append(substring(start, found - start))
-                result.append(new)
+                result.append(new_value)
 
-                start = found + old.length
-                found = index_of(old, start)
+                start = found + old_value.length
+                found = index_of(old_value, start)
             od
 
             result.append(substring(start))
@@ -256,12 +256,12 @@ namespace Ghul is
             return result.to_string()
         si
 
-        /// The string with every `old` replaced by `new`.
+        /// The string with every `old_value` replaced by `new_value`.
         ///
-        /// - old: the code unit to replace
-        /// - new: the code unit to put in its place
-        replace(old: char, new: char) -> string =>
-            replace(_string_from_char(old), _string_from_char(new))
+        /// - old_value: the code unit to replace
+        /// - new_value: the code unit to put in its place
+        replace(old_value: char, new_value: char) -> string =>
+            replace(_string_from_char(old_value), _string_from_char(new_value))
 
         /// The string, preceded by spaces up to `width` code units.
         ///
