@@ -53,7 +53,5 @@ dotnet tool restore
 dotnet ghul-test --use-dotnet-build tests
 ```
 
-The hello test passes when the only diagnostic is the code-generation
-error (the WasmGC backend does not exist yet); the type-error test
-passes when the error names the member and its place. Compiling the
-library needs ghul.compiler 64.10.0 or later.
+The type-error test passes when the error names the member and its
+place. Compiling the library needs ghul.compiler 64.13.0 or later.
