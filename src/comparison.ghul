@@ -135,4 +135,10 @@ namespace Ghul is
     impl Equatable[bool] for bool is
         =~(other: bool) -> bool pure => self == other;
     si
+
+    // No intrinsic orders two `bool`s, so false orders before true here.
+    impl Comparable[bool] for bool is
+        <>(other: bool) -> int pure =>
+            if self == other then 0 elif self then 1 else -1 fi;
+    si
 si
