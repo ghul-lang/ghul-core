@@ -34,6 +34,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/operators` — a program using the scalar operators
 - `tests/comparison` — `=~` and the relational operators over each scalar
   type
+- `tests/ranges` — the `..` and `::` operators and the range types they
+  produce
 - `tests/tuples` — tuple elements read by position and by name, and a
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
