@@ -13,8 +13,49 @@ namespace Collections is
         iterator: Iterator[E];
     si
 
-    trait List[E: out]: Iterable[E] is
+    /// A sequence that knows how many elements it holds.
+    trait Bag[E: out]: Iterable[E] is
+        /// The number of elements.
         count: int;
+    si
+
+    /// A read-only sequence whose elements can be read by position.
+    trait List[E: out]: Bag[E] is
+        /// The element at `index`, counting from zero.
         [index: int]: E;
+    si
+
+    /// A collection elements can be added to and cleared from.
+    trait MutableBag[E]: Iterable[E] is
+        /// The number of elements.
+        count: int;
+
+        /// Adds `value`.
+        ///
+        /// - value: the element to add
+        add(value: E);
+
+        /// Removes every element.
+        clear();
+    si
+
+    /// A collection whose elements can be read, replaced, inserted and
+    /// removed by position.
+    trait MutableList[E]: MutableBag[E] is
+        /// The element at `index`, counting from zero.
+        [index: int]: E, = value;
+
+        /// Inserts `value` at `index`, moving the elements from there on up
+        /// by one.
+        ///
+        /// - index: where the element goes, from zero to `count`
+        /// - value: the element to insert
+        insert(index: int, value: E);
+
+        /// Removes the element at `index`, moving the elements after it
+        /// down by one.
+        ///
+        /// - index: the position of the element to remove
+        remove_at(index: int);
     si
 si

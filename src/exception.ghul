@@ -86,4 +86,12 @@ namespace Ghul is
             super.init(message);
         si
     si
+
+    /// Thrown when an index or a count is outside the range a member accepts.
+    class ArgumentOutOfRangeException: Exception is
+        /// - message: which argument was out of range
+        init(message: string) is
+            super.init(message);
+        si
+    si
 si

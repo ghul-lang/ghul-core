@@ -1,0 +1,32 @@
+// LIST grows as elements are added, and reads, writes, inserts and removes
+// by position, as it does on .NET.
+//
+// Arrays and lists are not yet compiled for the wasm target, so calling
+// sum records the diagnostics that say so until they are.
+sum() -> int is
+    let numbers = Collections.LIST[int]()
+
+    for i in 0..10 do
+        numbers.add(i)
+    od
+
+    numbers.insert(0, 100)
+    numbers.remove_at(1)
+    numbers[2] = 50
+
+    let total mut = 0
+
+    for n in numbers do
+        total = total + n
+    od
+
+    let copy = Collections.LIST[int](numbers)
+    let list: Collections.List[int] = copy
+    let mutable: Collections.MutableList[int] = copy
+
+    return total + list.count + mutable[0] + copy.capacity
+si
+
+entry() is
+    let ok = sum() > 0
+si

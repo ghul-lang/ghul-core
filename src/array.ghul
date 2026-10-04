@@ -41,4 +41,12 @@ namespace Ghul is
         /// Releases nothing: an array holds no resource.
         dispose() is si
     si
+
+    // Allocates an array of `count` elements, each the default of `E`.
+    @intrinsic("array.new")
+    _array_new[E](count: int) -> E[] pure
+
+    // Stores `value` at `index` in `array`.
+    @intrinsic("array.set")
+    _array_set[E](array: E[], index: int, value: E)
 si
