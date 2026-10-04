@@ -24,7 +24,7 @@ sum() -> int is
     let list: Collections.List[int] = copy
     let mutable: Collections.MutableList[int] = copy
 
-    return total + list.count + mutable[0] + copy.capacity
+    return total + list.count + mutable[0] + copy.capacity + copy.to_array().count
 si
 
 entry() is
