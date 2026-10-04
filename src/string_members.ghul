@@ -244,7 +244,7 @@ namespace Ghul is
         /// - new_value: the text to put in its place
         replace(old_value: string, new_value: string) -> string is
             if old_value.length == 0 then
-                throw ArgumentOutOfRangeException("old_value")
+                throw ArgumentException("old_value")
             fi
 
             let result = STRING_BUILDER()
