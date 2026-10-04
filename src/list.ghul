@@ -1,0 +1,188 @@
+namespace Collections is
+    /// A list that grows as elements are added, read and written by
+    /// position.
+    class LIST[T]: List[T], MutableList[T] is
+        _items: T[];
+        _count: int;
+
+        /// An empty list.
+        init() is
+            _items = Ghul._array_new[T](4);
+            _count = 0;
+        si
+
+        /// An empty list with room for `capacity` elements before it grows.
+        ///
+        /// - capacity: the number of elements to make room for
+        init(capacity: int) is
+            if capacity < 0 then
+                throw Ghul.ArgumentOutOfRangeException("capacity");
+            fi
+
+            _items = Ghul._array_new[T](capacity);
+            _count = 0;
+        si
+
+        /// A list holding the elements of `source`, in order.
+        ///
+        /// - source: the elements to copy
+        init(source: Iterable[T]) is
+            _items = Ghul._array_new[T](4);
+            _count = 0;
+
+            add_range(source);
+        si
+
+        /// The number of elements.
+        count: int => _count;
+
+        /// The number of elements the list can hold before it grows.
+        capacity: int => _items.count;
+
+        /// The element at `index`, counting from zero.
+        [index: int]: T =>
+            if index < 0 \/ index >= _count then
+                throw Ghul.ArgumentOutOfRangeException("index")
+            else
+                _items[index]
+            fi,
+            = value is
+                if index < 0 \/ index >= _count then
+                    throw Ghul.ArgumentOutOfRangeException("index");
+                fi
+
+                Ghul._array_set(_items, index, value);
+            si
+
+        /// Adds `value` at the end.
+        ///
+        /// - value: the element to add
+        add(value: T) is
+            _ensure_room(_count + 1);
+
+            Ghul._array_set(_items, _count, value);
+            _count = _count + 1;
+        si
+
+        /// Adds each element of `source` at the end, in order.
+        ///
+        /// - source: the elements to add
+        add_range(source: Iterable[T]) is
+            for value in source do
+                add(value);
+            od
+        si
+
+        /// Inserts `value` at `index`, moving the elements from there on up
+        /// by one.
+        ///
+        /// - index: where the element goes, from zero to `count`
+        /// - value: the element to insert
+        insert(index: int, value: T) is
+            if index < 0 \/ index > _count then
+                throw Ghul.ArgumentOutOfRangeException("index");
+            fi
+
+            _ensure_room(_count + 1);
+
+            let i mut = _count;
+
+            while i > index do
+                Ghul._array_set(_items, i, _items[i - 1]);
+                i = i - 1;
+            od
+
+            Ghul._array_set(_items, index, value);
+            _count = _count + 1;
+        si
+
+        /// Removes the element at `index`, moving the elements after it
+        /// down by one.
+        ///
+        /// - index: the position of the element to remove
+        remove_at(index: int) is
+            if index < 0 \/ index >= _count then
+                throw Ghul.ArgumentOutOfRangeException("index");
+            fi
+
+            let i mut = index;
+
+            while i < _count - 1 do
+                Ghul._array_set(_items, i, _items[i + 1]);
+                i = i + 1;
+            od
+
+            _count = _count - 1;
+            Ghul._array_set(_items, _count, _[T]);
+        si
+
+        /// Removes every element.
+        clear() is
+            let i mut = 0;
+
+            while i < _count do
+                Ghul._array_set(_items, i, _[T]);
+                i = i + 1;
+            od
+
+            _count = 0;
+        si
+
+        /// An iterator over the elements, in order.
+        iterator: Iterator[T] => LIST_ITERATOR[T](_items, _count);
+
+        _ensure_room(needed: int) is
+            if needed <= _items.count then
+                return;
+            fi
+
+            let size mut = _items.count * 2;
+
+            if size < needed then
+                size = needed;
+            fi
+
+            let grown = Ghul._array_new[T](size);
+            let i mut = 0;
+
+            while i < _count do
+                Ghul._array_set(grown, i, _items[i]);
+                i = i + 1;
+            od
+
+            _items = grown;
+        si
+    si
+
+    /// Iterates the elements a list held when the iterator was made, in
+    /// order.
+    class LIST_ITERATOR[T]: Iterator[T] is
+        _items: T[];
+        _count: int;
+        _index: int;
+
+        /// An iterator positioned before the first of `count` elements of
+        /// `items`.
+        ///
+        /// - items: the list's backing array
+        /// - count: the number of elements in use
+        init(items: T[], count: int) is
+            _items = items;
+            _count = count;
+            _index = -1;
+        si
+
+        /// Moves to the next element, answering whether there is one.
+        move_next() -> bool is
+            _index = _index + 1;
+
+            return _index < _count;
+        si
+
+        /// The element the iterator is positioned at.
+        current: T => _items[_index];
+
+        /// Releases nothing: a list holds no resource.
+        dispose() is si
+    si
+si

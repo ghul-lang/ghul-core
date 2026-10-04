@@ -37,6 +37,7 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/ranges` — the `..` and `::` operators and the range types they
   produce
 - `tests/maybe` — `MAYBE` and `KEY_VALUE_PAIR`
+- `tests/list` — `LIST` and the list traits
 - `tests/tuples` — tuple elements read by position and by name, and a
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
