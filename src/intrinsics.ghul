@@ -384,4 +384,11 @@ namespace Ghul.Intrinsics.Staging is
     // variables, `Path.get_directory_name`).
     /// Whether `a` and `b` have the same characters, treating two absent values as equal.
     @intrinsic("string.equals") =~(a: string?, b: string?) -> bool pure
+
+    // The range operators return the range structs declared in
+    // `int_range.ghul`.
+    /// The range from `from` up to but not including `to`.
+    @intrinsic("range.exclusive") ..(from: int, to: int) -> INT_RANGE pure
+    /// The range from `from` to `to`, including both.
+    @intrinsic("range.inclusive") ::(from: int, to: int) -> INT_RANGE_INCLUSIVE pure
 si
