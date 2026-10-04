@@ -8,6 +8,11 @@ namespace Ghul is
         /// - index: the position of the code unit, from 0
         [index: int]: char => _string_char_at(self, index)
 
+        /// Whether `other` holds the same code units.
+        ///
+        /// - other: the string to compare with
+        =~(other: string) -> bool pure => Ghul.Intrinsics.`=~(self, other)
+
         /// A hash of the string's code units, equal for strings that are
         /// `=~`. The value is the same from run to run, where .NET's varies
         /// by process, so no program can rely on a particular value.

@@ -1,5 +1,6 @@
 // Strings that are =~ hash alike, so a union with a string field
-// compares and hashes by its contents.
+// compares by its contents, even where the two strings are different
+// objects.
 use IO.Std
 
 union Shape is
@@ -15,8 +16,10 @@ entry() is
     Std.write_line(if a.get_hash_code() == "world".get_hash_code() then "hello and world collide" else "hello and world differ" fi)
     Std.write_line(if "".get_hash_code() == "".get_hash_code() then "empty hashes alike" else "empty hashes apart" fi)
 
-    let x: Shape = Shape.CIRCLE("c", 1)
-    let y: Shape = Shape.CIRCLE("c", 1)
+    let x: Shape = Shape.CIRCLE("circle", 1)
+    let y: Shape = Shape.CIRCLE("cir{"cle"}", 1)
+    let z: Shape = Shape.CIRCLE("square", 1)
 
-    Std.write_line(if x =~ y then "variants equal" else "variants differ" fi)
+    Std.write_line(if x =~ y then "same contents equal" else "same contents differ" fi)
+    Std.write_line(if x =~ z then "different contents equal" else "different contents differ" fi)
 si

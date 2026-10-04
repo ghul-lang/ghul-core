@@ -1,4 +1,5 @@
 equal strings hash alike
 hello and world differ
 empty hashes alike
-variants equal
+same contents equal
+different contents differ
