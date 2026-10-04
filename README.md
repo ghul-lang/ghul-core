@@ -38,6 +38,10 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   produce
 - `tests/maybe` — `MAYBE` and `KEY_VALUE_PAIR`
 - `tests/list` — `LIST` and the list traits
+- `tests/float_text` — `to_string` on `double` and `single`
+- `tests/float_text_dotnet` — the floating-point formatter compiled for .NET
+  and checked against .NET's own text for boundary values and random bit
+  patterns
 - `tests/tuples` — tuple elements read by position and by name, and a
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the
