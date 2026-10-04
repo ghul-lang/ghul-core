@@ -129,7 +129,7 @@ namespace Collections is
         si
 
         /// An iterator over the elements, in order.
-        iterator: Iterator[T] => LIST_ITERATOR[T](self);
+        iterator: Iterator[T] => LIST_ITERATOR[T](_items, _count);
 
         _ensure_room(needed: int) is
             if needed <= _items.count then
@@ -154,16 +154,21 @@ namespace Collections is
         si
     si
 
-    /// Iterates the elements of a list in order.
+    /// Iterates the elements a list held when the iterator was made, in
+    /// order.
     class LIST_ITERATOR[T]: Iterator[T] is
-        _list: LIST[T];
+        _items: T[];
+        _count: int;
         _index: int;
 
-        /// An iterator positioned before the first element of `list`.
+        /// An iterator positioned before the first of `count` elements of
+        /// `items`.
         ///
-        /// - list: the list to iterate
-        init(list: LIST[T]) is
-            _list = list;
+        /// - items: the list's backing array
+        /// - count: the number of elements in use
+        init(items: T[], count: int) is
+            _items = items;
+            _count = count;
             _index = -1;
         si
 
@@ -171,11 +176,11 @@ namespace Collections is
         move_next() -> bool is
             _index = _index + 1;
 
-            return _index < _list.count;
+            return _index < _count;
         si
 
         /// The element the iterator is positioned at.
-        current: T => _list[_index];
+        current: T => _items[_index];
 
         /// Releases nothing: a list holds no resource.
         dispose() is si

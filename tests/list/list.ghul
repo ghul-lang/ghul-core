@@ -1,8 +1,8 @@
 // LIST grows as elements are added, and reads, writes, inserts and removes
 // by position, as it does on .NET.
 //
-// Arrays and lists are not yet compiled for the wasm target, so calling
-// sum records the diagnostics that say so until they are.
+// Generic classes and arrays are not yet compiled for the wasm target, so
+// calling sum records the diagnostics that say so until they are.
 sum() -> int is
     let numbers = Collections.LIST[int]()
 
@@ -28,5 +28,5 @@ sum() -> int is
 si
 
 entry() is
-    let ok = sum() > 0
+    let total = sum()
 si
