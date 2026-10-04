@@ -16,6 +16,10 @@ entry() is
     write_line("{ages.contains_key(1)} {ages.contains_key(3)} {ages.contains_value(41)}")
     write_line("{ages.try_add(1, 1)} {ages.try_add(3, 85)} {ages.count}")
 
+    let found mut = 0
+
+    write_line("{ages.try_get_value(2, found ref)} {found} {ages.try_get_value(9, found ref)} {found}")
+
     let i mut = 0
 
     while i < 100 do

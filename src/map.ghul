@@ -124,6 +124,26 @@ namespace Collections is
         /// - key: the key to look for
         contains_key(key: K) -> bool => _find(key) >= 0;
 
+        /// Writes the value `key` maps to into `value`, answering whether
+        /// the map has `key`; `value` is set to the default of `V` when it
+        /// does not.
+        ///
+        /// - key: the key to look for
+        /// - value: where the value goes
+        try_get_value(key: K, value: V ref) -> bool is
+            let entry = _find(key);
+
+            if entry < 0 then
+                value! = _[V];
+
+                return false;
+            fi
+
+            value! = _values[entry];
+
+            return true;
+        si
+
         /// Whether any key maps to `value`.
         ///
         /// - value: the value to look for
