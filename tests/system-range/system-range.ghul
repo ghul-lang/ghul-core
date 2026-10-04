@@ -1,0 +1,38 @@
+// System.Index and System.Range resolve against a length as they do on
+// .NET. The program's exit status has one bit for each case that holds.
+bit(condition: bool, value: int) -> int => if condition then value else 0 fi
+
+thrown(length: int, range: System.Range) -> bool is
+    try
+        range.get_offset_and_length(length)
+        return false
+    catch e: Ghul.ArgumentOutOfRangeException
+        return true
+    yrt
+si
+
+entry() -> int is
+    let result mut = 0
+
+    // 1: an index from the start is its own value
+    result = result + bit(System.Index(2, false).get_offset(10) == 2, 1)
+
+    // 2: an index from the end counts back from the length
+    result = result + bit(System.Index(3, true).get_offset(10) == 7, 2)
+
+    // 4: a range from the start up to one back from the end
+    let (offset, length) = System.Range(System.Index(1, false), System.Index(1, true)).get_offset_and_length(5)
+    result = result + bit(offset == 1 /\ length == 3, 4)
+
+    // 8: a range with both ends counted back
+    let tail = System.Range(System.Index(3, true), System.Index(0, true)).get_offset_and_length(5)
+    result = result + bit(tail.offset == 2 /\ tail.length == 3, 8)
+
+    // 16: a range reaching past the end is rejected
+    result = result + bit(thrown(3, System.Range(System.Index(0, false), System.Index(5, false))), 16)
+
+    // 32: a range whose start is after its end is rejected
+    result = result + bit(thrown(10, System.Range(System.Index(4, false), System.Index(2, false))), 32)
+
+    return result
+si
