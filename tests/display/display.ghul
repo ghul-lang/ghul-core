@@ -36,7 +36,7 @@ entry() is
     IO.Std.write_line($(LABEL("top", 'x')))
     IO.Std.write_line(inspect(LABEL("top", 'x')))
     IO.Std.write_line($(EMPTY()))
-    IO.Std.write_line($([1, 2, 3]))
-    IO.Std.write_line(inspect(["one", "two"]))
-    IO.Std.write_line($([POINT(1, 2), POINT(3, 4)]))
+    IO.Std.write_line($((1, "one")))
+    IO.Std.write_line("{POINT(5, 6)} {true} {(2, 'z')}")
+    IO.Std.write_line(inspect((1, "one", 'c', true)))
 si

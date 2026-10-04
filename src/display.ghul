@@ -279,6 +279,8 @@ namespace Ghul is
             counter.count = counter.count + 1
         si
 
+        _part[T](value: T) => _render_part(value)
+
         _end_parts() is
             _pop_count()
             append(")")
