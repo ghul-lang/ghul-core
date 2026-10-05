@@ -59,6 +59,9 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   .NET's `List.Sort` for where it leaves elements the comparer calls equal
 - `tests/bigint` — bigint's operators and members, each a host operation on the
   host's BigInt, against the text .NET prints for the same program
+- `tests/bigint_conversions` — `cast` between bigint and the scalars, bigint under
+  numeric formats and reached as `object`, and division by zero, against
+  .NET's text
 - `tests/string_members` — the string members: search, trim, split, replace,
   padding, casing and comparison
 - `tests/string_hash` — strings that are `=~` hash alike, and a union with a

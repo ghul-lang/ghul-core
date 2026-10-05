@@ -1,5 +1,5 @@
 {
-    "name": "bigint",
+    "name": "bigint-conversions",
     "targets": ["wasm"],
     "compiler": "64.31.0",
     "sources": ["*.ghul"],
