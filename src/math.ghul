@@ -13,7 +13,7 @@ namespace Ghul is
 
         /// The magnitude of `value`. Throws `OverflowException` where `value` is
         /// the least `int`, whose magnitude does not fit.
-        abs(value: int) -> int static is
+        abs(value: int) -> int static pure is
             if value >= 0 then
                 return value
             fi
@@ -29,7 +29,7 @@ namespace Ghul is
 
         /// The magnitude of `value`. Throws `OverflowException` where `value` is
         /// the least `long`, whose magnitude does not fit.
-        abs(value: long) -> long static is
+        abs(value: long) -> long static pure is
             if value >= 0L then
                 return value
             fi
@@ -111,7 +111,7 @@ namespace Ghul is
 
         /// -1, 0 or 1, as `value` is negative, zero or positive. Throws
         /// `ArithmeticException` where `value` is NaN.
-        sign(value: double) -> int static is
+        sign(value: double) -> int static pure is
             if value != value then
                 throw ArithmeticException("the value is not a number")
             fi
@@ -212,6 +212,19 @@ namespace Ghul is
         /// The natural logarithm of `value`.
         @intrinsic("host.math_log")
         log(value: double) -> double static pure
+
+        /// The remainder of `x` divided by `y`, as IEEE 754 defines it: `x`
+        /// less the multiple of `y` nearest to `x`, a tie going to the even
+        /// multiple.
+        ieee_remainder(x: double, y: double) -> double static pure is
+            if x != x \/ y != y \/ y == 0.0 then
+                return 0.0 / 0.0
+            fi
+
+            let result = x - y * round(x / y)
+
+            return if result == 0.0 /\ _is_negative(x) then -0.0 else result fi
+        si
 
         /// The logarithm of `value` to `base`.
         log(value: double, base: double) -> double static pure => log(value) / log(base)
