@@ -1,0 +1,83 @@
+namespace Ghul is
+    // Classification and case over the ASCII and Latin-1 ranges. Beyond
+    // them a character is neither a letter nor a digit, and keeps its case,
+    // until the library carries Unicode's tables.
+    partial char is
+        /// Whether `c` is a decimal digit, `0` to `9`.
+        ///
+        /// - c: the character to test
+        is_digit(c: char) -> bool static pure => c >= '0' /\ c <= '9'
+
+        /// Whether `c` is a letter.
+        ///
+        /// - c: the character to test
+        is_letter(c: char) -> bool static pure => is_upper(c) \/ is_lower(c) \/ c == '\u00AA' \/ c == '\u00BA'
+
+        /// Whether `c` is a letter or a decimal digit.
+        ///
+        /// - c: the character to test
+        is_letter_or_digit(c: char) -> bool static pure => is_letter(c) \/ is_digit(c)
+
+        /// Whether `c` is an upper-case letter.
+        ///
+        /// - c: the character to test
+        is_upper(c: char) -> bool static pure =>
+            c >= 'A' /\ c <= 'Z' \/
+            c >= '\u00C0' /\ c <= '\u00DE' /\ c != '\u00D7'
+
+        /// Whether `c` is a lower-case letter.
+        ///
+        /// - c: the character to test
+        is_lower(c: char) -> bool static pure =>
+            c >= 'a' /\ c <= 'z' \/
+            c == '\u00B5' \/
+            c >= '\u00DF' /\ c <= '\u00FF' /\ c != '\u00F7'
+
+        /// Whether `c` is white space, as .NET's `char.IsWhiteSpace` counts it.
+        ///
+        /// - c: the character to test
+        is_white_space(c: char) -> bool static pure => _is_white_space(c)
+
+        /// Whether `c` is punctuation.
+        ///
+        /// - c: the character to test
+        is_punctuation(c: char) -> bool static pure =>
+            c >= '!' /\ c <= '#' \/ c >= '%' /\ c <= '*' \/ c >= ',' /\ c <= '/' \/
+            c == ':' \/ c == ';' \/ c == '?' \/ c == '@' \/ c >= '[' /\ c <= ']' \/
+            c == '_' \/ c == '{' \/ c == '}' \/
+            c == '\u00A1' \/ c == '\u00A7' \/ c == '\u00AB' \/ c == '\u00B6' \/ c == '\u00B7' \/
+            c == '\u00BB' \/ c == '\u00BF'
+
+        /// The upper-case form of `c`, or `c` itself where it has none.
+        ///
+        /// - c: the character to convert
+        to_upper(c: char) -> char static pure =>
+            if c >= 'a' /\ c <= 'z' \/ c >= '\u00E0' /\ c <= '\u00FE' /\ c != '\u00F7' then
+                cast char(cast int(c) - 32)
+            elif c == '\u00FF' then
+                '\u0178'
+            else
+                c
+            fi
+
+        /// The lower-case form of `c`, or `c` itself where it has none.
+        ///
+        /// - c: the character to convert
+        to_lower(c: char) -> char static pure =>
+            if c >= 'A' /\ c <= 'Z' \/ c >= '\u00C0' /\ c <= '\u00DE' /\ c != '\u00D7' then
+                cast char(cast int(c) + 32)
+            else
+                c
+            fi
+
+        /// The upper-case form of `c` under the invariant culture.
+        ///
+        /// - c: the character to convert
+        to_upper_invariant(c: char) -> char static pure => to_upper(c)
+
+        /// The lower-case form of `c` under the invariant culture.
+        ///
+        /// - c: the character to convert
+        to_lower_invariant(c: char) -> char static pure => to_lower(c)
+    si
+si

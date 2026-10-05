@@ -117,4 +117,16 @@ namespace Ghul is
             super.init(message);
         si
     si
+
+    /// Thrown when text is not in the format a parse expects.
+    class FormatException: Exception is
+        init() is
+            super.init("the input string was not in a correct format");
+        si
+
+        /// - message: what was wrong with the text
+        init(message: string) is
+            super.init(message);
+        si
+    si
 si
