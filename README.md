@@ -59,6 +59,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   variants, tuples, sequences and a `Displayable`, as .NET writes them
 - `tests/environment` — a program reading, writing and removing variables
   through its `Ghul.Environment`
+- `tests/arguments` — a program reading the command-line arguments it was
+  run with
 
 Each test directory is a ghul-cli project whose `ghul-project.json` takes
 ghul-core from this checkout (`"path": "../.."`), so the program compiles
