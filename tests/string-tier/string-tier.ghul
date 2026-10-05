@@ -24,6 +24,7 @@ entry() is
     write_line("{show(char.is_letter('q'))} {show(char.is_letter('3'))} {show(char.is_letter_or_digit('3'))}")
     write_line("{show(char.is_upper('Q'))} {show(char.is_lower('Q'))} {show(char.is_white_space('\t'))}")
     write_line("{char.to_upper('a')}{char.to_lower('B')}{char.to_upper('!')}")
+    write_line("{cast int(char.to_upper(cast char(181)))} {cast int(char.to_upper(cast char(255)))}")
 
     write_line("{int.parse(" -42 ")} {long.parse("9000000000")} {int.parse("+7")}")
 

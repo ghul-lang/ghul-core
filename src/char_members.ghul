@@ -54,6 +54,8 @@ namespace Ghul is
         to_upper(c: char) -> char static pure =>
             if c >= 'a' /\ c <= 'z' \/ c >= '\u00E0' /\ c <= '\u00FE' /\ c != '\u00F7' then
                 cast char(cast int(c) - 32)
+            elif c == '\u00B5' then
+                '\u039C'
             elif c == '\u00FF' then
                 '\u0178'
             else
