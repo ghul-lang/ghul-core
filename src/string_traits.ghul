@@ -2,13 +2,18 @@ namespace Ghul is
     // A string orders by its code units, as .NET's string does without a
     // culture, and iterates as its code units, as a .NET string iterates as
     // its chars.
-    partial string is
+    impl Equatable[string] for string is
+    si
+
+    impl Comparable[string] for string is
         /// Negative where this string orders before `other` by code unit,
         /// zero where they are equal, positive otherwise.
         ///
         /// - other: the string to compare with
         <>(other: string) -> int pure => compare(self, other)
+    si
 
+    impl Collections.Iterable[char] for string is
         /// An iterator over the string's code units, in order.
         iterator: Collections.Iterator[char] => _STRING_ITERATOR(self)
     si
