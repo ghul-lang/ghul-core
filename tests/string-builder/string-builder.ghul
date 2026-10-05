@@ -13,6 +13,9 @@ entry() is
     builder.clear().append('-', 3).append_line("x").append_line()
     write_line("[{builder.to_string()}]")
 
+    builder[0] = 'A'
+    write_line(builder.to_string())
+
     builder.clear().append("hello").insert(0, "[").insert(6, ']').remove(1, 2)
     write_line(builder.to_string())
 

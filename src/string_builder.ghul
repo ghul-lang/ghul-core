@@ -72,10 +72,19 @@ namespace Text is
         /// The number of code units built so far.
         length: int => if let text = _text then text.length else 0 fi
 
-        /// The code unit at `index`.
+        /// The code unit at `index`, which can be replaced.
         ///
         /// - index: the position of the code unit, from 0
-        [index: int]: char => to_string()[index]
+        [index: int]: char => to_string()[index],
+            = value is
+                let text = to_string()
+
+                if index < 0 \/ index >= text.length then
+                    throw Ghul.ArgumentOutOfRangeException("index");
+                fi
+
+                _text = _string_concat(_string_concat(text.substring(0, index), _string_from_char(value)), text.substring(index + 1));
+            si
 
         /// Removes everything built so far, and returns this builder.
         clear() -> STRING_BUILDER is
