@@ -1,0 +1,205 @@
+namespace Ghul is
+    // A bigint is a box around the host's arbitrary-precision integer, so
+    // every operation on one is a host import. The host gives them .NET's
+    // BigInteger semantics: division truncates, a remainder takes the
+    // dividend's sign, and shifts are arithmetic.
+
+    partial bigint is
+        /// The value built from `value`.
+        ///
+        /// - value: the integer to hold
+        @intrinsic("host.bigint_from_long")
+        init(value: long)
+
+        /// The value built from `value`.
+        ///
+        /// - value: the integer to hold
+        @intrinsic("host.bigint_from_int")
+        init(value: int)
+
+        /// The integer part of `value`.
+        ///
+        /// - value: the number to truncate
+        @intrinsic("host.bigint_from_double")
+        init(value: double)
+
+        /// Zero.
+        zero: bigint static => bigint(0L)
+
+        /// One.
+        one: bigint static => bigint(1L)
+
+        /// Minus one.
+        minus_one: bigint static => bigint(-1L)
+
+        /// Whether the value is zero.
+        is_zero: bool => self =~ zero
+
+        /// Whether the value is one.
+        is_one: bool => self =~ one
+
+        /// Whether the value is even.
+        is_even: bool => (self & one).is_zero
+
+        /// Whether the value is a power of two.
+        is_power_of_two: bool => self > zero /\ (self & (self - one)).is_zero
+
+        /// -1, 0 or 1 as the value is negative, zero or positive.
+        sign: int => _compare(self, zero)
+
+        /// The bits needed to hold the value in two's complement, less the sign bit.
+        get_bit_length() -> long => cast long(_bit_length(self))
+
+        /// The value in decimal, with a leading `-` when it is negative.
+        to_string() -> string => _to_string(self)
+
+        /// A hash code consistent with `=~`.
+        get_hash_code() -> int => _hash(self)
+
+        /// The integer `text` writes in decimal, with optional surrounding
+        /// white space and a leading sign.
+        ///
+        /// - text: the decimal text to read
+        parse(text: string) -> bigint static is
+            if !_is_integer_text(text) then
+                throw FormatException("the value could not be parsed")
+            fi
+
+            return _parse(text)
+        si
+
+        /// `value` raised to the power `exponent`.
+        ///
+        /// - value: the base
+        /// - exponent: the non-negative power
+        pow(value: bigint, exponent: int) -> bigint static is
+            if exponent < 0 then
+                throw ArgumentOutOfRangeException("exponent", "the exponent is negative")
+            fi
+
+            return _pow(value, exponent)
+        si
+
+        /// `value` raised to `exponent`, modulo `modulus`, the result taking
+        /// the sign of `value`.
+        ///
+        /// - value: the base
+        /// - exponent: the non-negative power
+        /// - modulus: the divisor
+        mod_pow(value: bigint, exponent: bigint, modulus: bigint) -> bigint static is
+            if exponent.sign < 0 then
+                throw ArgumentOutOfRangeException("exponent", "the exponent is negative")
+            fi
+
+            if modulus.is_zero then
+                throw DivideByZeroException()
+            fi
+
+            return _mod_pow(value, exponent, modulus)
+        si
+
+        /// The greatest common divisor of `a` and `b`, never negative.
+        ///
+        /// - a: the first value
+        /// - b: the second value
+        greatest_common_divisor(a: bigint, b: bigint) -> bigint static => _gcd(a, b)
+
+        /// The magnitude of `value`.
+        ///
+        /// - value: the value
+        abs(value: bigint) -> bigint static => if value.sign < 0 then -value else value fi
+
+        /// -1, 0 or 1 as `a` is less than, equal to or greater than `b`.
+        ///
+        /// - a: the first value
+        /// - b: the second value
+        compare(a: bigint, b: bigint) -> int static => _compare(a, b)
+
+        /// The larger of `a` and `b`.
+        max(a: bigint, b: bigint) -> bigint static => if a < b then b else a fi
+
+        /// The smaller of `a` and `b`.
+        min(a: bigint, b: bigint) -> bigint static => if b < a then b else a fi
+
+        @intrinsic("host.bigint_is_integer_text")
+        _is_integer_text(text: string) -> bool static pure
+
+        @intrinsic("host.bigint_parse")
+        _parse(text: string) -> bigint static pure
+
+        @intrinsic("host.bigint_to_string")
+        _to_string(value: bigint) -> string static pure
+
+        @intrinsic("host.bigint_to_long")
+        _to_long(value: bigint) -> long static pure
+
+        @intrinsic("host.bigint_to_double")
+        _to_double(value: bigint) -> double static pure
+
+        @intrinsic("host.bigint_divide")
+        _divide(a: bigint, b: bigint) -> bigint static pure
+
+        @intrinsic("host.bigint_remainder")
+        _remainder(a: bigint, b: bigint) -> bigint static pure
+
+        @intrinsic("host.bigint_compare")
+        _compare(a: bigint, b: bigint) -> int static pure
+
+        @intrinsic("host.bigint_equals")
+        _equals(a: bigint, b: bigint) -> bool static pure
+
+        @intrinsic("host.bigint_hash")
+        _hash(value: bigint) -> int static pure
+
+        @intrinsic("host.bigint_pow")
+        _pow(value: bigint, exponent: int) -> bigint static pure
+
+        @intrinsic("host.bigint_mod_pow")
+        _mod_pow(value: bigint, exponent: bigint, modulus: bigint) -> bigint static pure
+
+        @intrinsic("host.bigint_gcd")
+        _gcd(a: bigint, b: bigint) -> bigint static pure
+
+        @intrinsic("host.bigint_bit_length")
+        _bit_length(value: bigint) -> int static pure
+    si
+
+    impl Equatable[bigint] for bigint is
+        =~(other: bigint) -> bool pure => bigint._equals(self, other)
+    si
+
+    impl Comparable[bigint] for bigint is
+        <>(other: bigint) -> int pure => bigint._compare(self, other)
+    si
+si
+
+namespace Ghul.Intrinsics.Staging is
+    // bigint's operators, registered on bigint as the scalars' are. Each is
+    // a host import; a division or remainder by zero raises the host's
+    // error rather than a catchable DivideByZeroException.
+
+    /// The sum.
+    @intrinsic("host.bigint_add") +(a: bigint, b: bigint) -> bigint pure
+    /// The difference.
+    @intrinsic("host.bigint_subtract") -(a: bigint, b: bigint) -> bigint pure
+    /// The product.
+    @intrinsic("host.bigint_multiply") *(a: bigint, b: bigint) -> bigint pure
+    /// The quotient, truncated towards zero.
+    @intrinsic("host.bigint_divide") /(a: bigint, b: bigint) -> bigint pure
+    /// The remainder, with the sign of `a`.
+    @intrinsic("host.bigint_remainder") %(a: bigint, b: bigint) -> bigint pure
+    /// The negation.
+    @intrinsic("host.bigint_negate") -(a: bigint) -> bigint pure
+    /// The bitwise complement.
+    @intrinsic("host.bigint_not") \(a: bigint) -> bigint pure
+    /// The bitwise and.
+    @intrinsic("host.bigint_and") &(a: bigint, b: bigint) -> bigint pure
+    /// The bitwise or.
+    @intrinsic("host.bigint_or") |(a: bigint, b: bigint) -> bigint pure
+    /// The bitwise exclusive or.
+    @intrinsic("host.bigint_xor") ^(a: bigint, b: bigint) -> bigint pure
+    /// `a` shifted left by `places` bits.
+    @intrinsic("host.bigint_shift_left") <<(a: bigint, places: int) -> bigint pure
+    /// `a` shifted right by `places` bits, the sign bit copied in.
+    @intrinsic("host.bigint_shift_right") >>(a: bigint, places: int) -> bigint pure
+si
