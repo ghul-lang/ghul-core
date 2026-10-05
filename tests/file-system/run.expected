@@ -24,4 +24,22 @@ x/y/z
 .
 false false
 missing: Could not find file '/data.txt'.
-unsupported
+true true false
+first|second|third|fourth
+first|second|third|fourth|fifth
+32 /notes.txt
+99 97 102 195 169 32 226 130 172 32 240 159 152 128
+true 9
+4 137 71
+no directory: Could not find a part of the path '/nowhere/file.txt'.
+true true false
+out/top.txt
+out/frames/a.txt out/top.txt
+out/frames
+/out/frames/a.txt /out/frames/b.log
+not empty
+false t
+false false
+one|two
+4 1 2
+missing: Could not find file '/gone.bin'.

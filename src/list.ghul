@@ -333,6 +333,63 @@ namespace Collections is
             return result;
         si
 
+        /// A new list holding `count` elements starting at `index`.
+        ///
+        /// - index: the position of the first element to take
+        /// - count: the number of elements to take
+        get_range(index: int, count: int) -> LIST[T] is
+            _check_range(index, count);
+
+            let result = LIST[T](count);
+            let i mut = 0;
+
+            while i < count do
+                result.add(_items[index + i]);
+                i = i + 1;
+            od
+
+            return result;
+        si
+
+        /// Copies every element into `array`, starting at its first position.
+        ///
+        /// - array: where the elements go, with room for all of them
+        copy_to(array: T[]) =>
+            copy_to(0, array, 0, _count);
+
+        /// Copies every element into `array`, starting at `array_index`.
+        ///
+        /// - array: where the elements go
+        /// - array_index: the position in `array` the first element goes to
+        copy_to(array: T[], array_index: int) =>
+            copy_to(0, array, array_index, _count);
+
+        /// Copies `count` elements starting at `index` into `array`,
+        /// starting at `array_index`.
+        ///
+        /// - index: the position of the first element to copy
+        /// - array: where the elements go
+        /// - array_index: the position in `array` the first element goes to
+        /// - count: the number of elements to copy
+        copy_to(index: int, array: T[], array_index: int, count: int) is
+            _check_range(index, count);
+
+            if array_index < 0 then
+                throw Ghul.ArgumentOutOfRangeException("arrayIndex");
+            fi
+
+            if array_index + count > array.count then
+                throw Ghul.ArgumentException("Destination array was not long enough. Check the destination index, length, and the array's lower bounds.");
+            fi
+
+            let i mut = 0;
+
+            while i < count do
+                Ghul._array_set(array, array_index + i, _items[index + i]);
+                i = i + 1;
+            od
+        si
+
         /// An iterator over the elements, in order.
         iterator: Iterator[T] => LIST_ITERATOR[T](_items, _count);
 
