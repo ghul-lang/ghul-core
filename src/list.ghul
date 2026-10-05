@@ -140,6 +140,22 @@ namespace Collections is
         /// - value: the element to look for
         contains(value: T) -> bool => index_of(value) >= 0;
 
+        /// Sorts the elements in place in the order `comparer` gives,
+        /// leaving elements it calls equal where .NET's sort leaves them.
+        ///
+        /// - comparer: orders two elements
+        sort(comparer: IComparer[T]) is
+            Ghul._introsort(_items, _count, comparer);
+        si
+
+        /// Sorts the elements in place in the order `compare` gives,
+        /// leaving elements it calls equal where .NET's sort leaves them.
+        ///
+        /// - compare: negative when its first argument comes first, positive when it comes after, zero otherwise
+        sort(compare: (T, T) -> int) is
+            Ghul._introsort(_items, _count, Ghul._FUNCTION_COMPARER[T](compare));
+        si
+
         /// Removes the first element `=~` to `value`, answering whether
         /// there was one.
         ///
@@ -237,5 +253,19 @@ namespace Collections is
 
         /// Releases nothing: a list holds no resource.
         dispose() is si
+    si
+si
+
+namespace Ghul is
+    // Orders by calling a comparison function, so a sort given one can run
+    // through the comparer the sort takes.
+    class _FUNCTION_COMPARER[T]: Collections.IComparer[T] is
+        _compare: (T, T) -> int
+
+        init(compare: (T, T) -> int) is
+            _compare = compare
+        si
+
+        compare(x: T, y: T) -> int => _compare(x, y)
     si
 si
