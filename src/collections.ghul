@@ -14,7 +14,7 @@ namespace Collections is
     si
 
     /// Orders two values of `T`, for a sort or an ordered collection.
-    trait IComparer[T: in] open is
+    trait Comparer[T: in] open is
         /// Negative when `x` comes before `y`, positive when it comes after, zero when neither does.
         compare(x: T, y: T) -> int;
     si

@@ -1,5 +1,6 @@
 // LIST.sort with a comparer and with a comparison function; equal keys stay
-// where .NET's sort leaves them.
+// where .NET's sort leaves them. The comparer is declared under the trait's
+// old name, IComparer, which still reaches Comparer.
 use IO.Std.write_line
 
 class BY_LENGTH: Collections.IComparer[string] is
