@@ -1,0 +1,32 @@
+namespace Ghul.Internal is
+    /// The string constructors .NET's string declares, which the compiler
+    /// offers as overloads of string's own.
+    class STRING_CHAR_CONSTRUCTORS is
+        /// A string holding the code units of `chars`, in order.
+        ///
+        /// - chars: the code units
+        @intrinsic("constructor.from_chars")
+        from_chars(chars: char[]) -> string static pure is
+            let result = Text.STRING_BUILDER()
+
+            for unit in chars do
+                result.append(unit)
+            od
+
+            return result.to_string()
+        si
+
+        /// A string holding `count` copies of `unit`.
+        ///
+        /// - unit: the code unit to repeat
+        /// - count: how many copies, which must not be negative
+        @intrinsic("constructor.from_repeated")
+        from_repeated(unit: char, count: int) -> string static pure is
+            if count < 0 then
+                throw ArgumentOutOfRangeException("count", "the count must not be negative")
+            fi
+
+            return Text.STRING_BUILDER().append(unit, count).to_string()
+        si
+    si
+si
