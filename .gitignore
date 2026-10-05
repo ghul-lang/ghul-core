@@ -13,3 +13,5 @@ publish/
 **/*.err
 formatted/
 **/out/
+
+**/run.exit
