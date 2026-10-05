@@ -217,8 +217,14 @@ namespace Ghul is
         /// less the multiple of `y` nearest to `x`, a tie going to the even
         /// multiple.
         ieee_remainder(x: double, y: double) -> double static pure is
-            if x != x \/ y != y \/ y == 0.0 then
+            // x - x is NaN exactly where x is infinite or NaN.
+            if x - x != x - x \/ y != y \/ y == 0.0 then
                 return 0.0 / 0.0
+            fi
+
+            // An infinite divisor leaves any finite dividend as its remainder.
+            if y - y != y - y then
+                return x
             fi
 
             let result = x - y * round(x / y)
