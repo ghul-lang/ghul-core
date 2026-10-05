@@ -1,5 +1,5 @@
 // Path takes paths apart and puts them together as .NET does on Linux, and
-// the file system answers as an empty one that cannot be changed.
+// the in-memory file system answers as .NET does over the same files.
 
 use default
 
@@ -27,8 +27,68 @@ try
 catch e: IO.FileNotFoundException
     write_line("missing: {e.message}")
 yrt
+
+IO.File.write_all_text("notes.txt", "first\nsecond\r\nthird\rfourth\n")
+write_line("{IO.File.exists("notes.txt")} {IO.File.exists("/notes.txt")} {IO.File.exists("missing.txt")}")
+write_line(IO.File.read_all_lines("notes.txt") |> join("|"))
+IO.File.append_all_text("notes.txt", "fifth")
+write_line(IO.File.read_all_lines("/notes.txt") |> join("|"))
+write_line("{IO.FileInfo("notes.txt").length} {IO.FileInfo("notes.txt").full_name}")
+
+IO.File.write_all_text("unicode.txt", "café € 😀")
+let encoded = IO.File.read_all_bytes("unicode.txt")
+write_line(encoded |> map(b => "{b}") |> join(" "))
+write_line("{IO.File.read_all_text("unicode.txt") =~ "café € 😀"} {IO.File.read_all_text("unicode.txt").length}")
+
+let bytes = [137ub, 80ub, 78ub, 71ub]
+IO.File.write_all_bytes("image.png", bytes)
+let back = IO.File.read_all_bytes("image.png")
+write_line("{back.count} {back[0]} {back[3]}")
+
 try
-    IO.File.write_all_text("/out.txt", "hi")
-catch e: Ghul.NotSupportedException
-    write_line("unsupported")
+    IO.File.write_all_text("/nowhere/file.txt", "x")
+catch e: IO.DirectoryNotFoundException
+    write_line("no directory: {e.message}")
+yrt
+
+IO.Directory.create_directory("out/frames")
+IO.File.write_all_text("out/frames/a.txt", "a")
+IO.File.write_all_text("out/frames/b.log", "b")
+IO.File.write_all_text("out/top.txt", "t")
+write_line("{IO.Directory.exists("out")} {IO.Directory.exists("out/frames")} {IO.Directory.exists("out/none")}")
+write_line(IO.Directory.get_files("out") |> join(" "))
+write_line(IO.Directory.get_files("out", "*.txt", IO.SearchOption.ALL_DIRECTORIES) |> join(" "))
+write_line(IO.Directory.get_directories("out") |> join(" "))
+write_line(IO.Directory.get_file_system_entries("/out/frames") |> join(" "))
+
+try
+    IO.Directory.delete("out")
+catch e: IO.IOException
+    write_line("not empty")
+yrt
+
+IO.File.copy("out/top.txt", "copy.txt")
+IO.File.move("copy.txt", "moved.txt")
+write_line("{IO.File.exists("copy.txt")} {IO.File.read_all_text("moved.txt")}")
+IO.File.delete("moved.txt")
+IO.Directory.delete("out", true)
+write_line("{IO.File.exists("moved.txt")} {IO.Directory.exists("out")}")
+
+let writer = IO.File.create_text("log.txt")
+writer.write_line("one")
+writer.write("two")
+writer.close()
+write_line(IO.File.read_all_text("log.txt").replace("\n", "|"))
+
+let stream = IO.File.create("data.bin")
+stream.write_byte(1ub)
+stream.write([2ub, 3ub, 4ub], 0, 3)
+stream.close()
+let input = IO.File.open_read("data.bin")
+write_line("{input.length} {input.read_byte()} {input.read_byte()}")
+
+try
+    IO.File.read_all_bytes("gone.bin")
+catch e: IO.FileNotFoundException
+    write_line("missing: {e.message}")
 yrt

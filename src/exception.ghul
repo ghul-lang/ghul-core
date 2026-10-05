@@ -41,6 +41,23 @@ namespace Ghul is
         si
     si
 
+    /// Thrown when an object that has been closed or disposed is used.
+    class ObjectDisposedException: InvalidOperationException is
+        /// - message: what was used after it was closed
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
+    /// Thrown when the operation is not allowed on what it names, such as
+    /// reading a directory as a file.
+    class UnauthorizedAccessException: Exception is
+        /// - message: what was refused
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
     /// Thrown by an `assert` whose condition is false.
     class AssertFailedException: Exception is
         /// - message: the assert's own message, or where it is and what it
