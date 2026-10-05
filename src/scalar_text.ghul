@@ -156,84 +156,84 @@ namespace Ghul is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_signed_as(cast long(self), format, 8)
+        to_string(format: string) -> string pure => _format_signed_as(cast long(self), format, 8)
     si
 
     partial short is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_signed_as(cast long(self), format, 16)
+        to_string(format: string) -> string pure => _format_signed_as(cast long(self), format, 16)
     si
 
     partial int is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_signed_as(cast long(self), format, 32)
+        to_string(format: string) -> string pure => _format_signed_as(cast long(self), format, 32)
     si
 
     partial long is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_signed_as(self, format, 64)
+        to_string(format: string) -> string pure => _format_signed_as(self, format, 64)
     si
 
     partial word is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_signed_as(cast long(self), format, 64)
+        to_string(format: string) -> string pure => _format_signed_as(cast long(self), format, 64)
     si
 
     partial ubyte is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_unsigned_as(cast ulong(self), format)
+        to_string(format: string) -> string pure => _format_unsigned_as(cast ulong(self), format)
     si
 
     partial ushort is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_unsigned_as(cast ulong(self), format)
+        to_string(format: string) -> string pure => _format_unsigned_as(cast ulong(self), format)
     si
 
     partial uint is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_unsigned_as(cast ulong(self), format)
+        to_string(format: string) -> string pure => _format_unsigned_as(cast ulong(self), format)
     si
 
     partial ulong is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_unsigned_as(self, format)
+        to_string(format: string) -> string pure => _format_unsigned_as(self, format)
     si
 
     partial uword is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_unsigned_as(cast ulong(self), format)
+        to_string(format: string) -> string pure => _format_unsigned_as(cast ulong(self), format)
     si
 
     partial double is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_double_as(self, format)
+        to_string(format: string) -> string pure => _format_double_as(self, format)
     si
 
     partial single is
         /// The value written under the numeric format string `format`.
         ///
         /// - format: a standard or custom numeric format string
-        to_string(format: string) -> string => _format_single_as(self, format)
+        to_string(format: string) -> string pure => _format_single_as(self, format)
     si
 
     // The IEEE 754 bits of `value`.
