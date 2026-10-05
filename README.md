@@ -52,6 +52,9 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/number_format_dotnet` — the numeric formatter compiled for .NET and
   checked against .NET's own text for fixed and random values of every
   magnitude, under every format the formatter covers
+- `tests/list_sort` — `LIST.sort` with a comparer and with a comparison function
+- `tests/sort_dotnet` — the sort compiled for .NET and checked against
+  .NET's `List.Sort` for where it leaves elements the comparer calls equal
 - `tests/string_members` — the string members: search, trim, split, replace,
   padding, casing and comparison
 - `tests/string_hash` — strings that are `=~` hash alike, and a union with a
