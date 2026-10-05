@@ -146,8 +146,8 @@ namespace Ghul is
 
         /// The string without its leading and trailing white space.
         trim() -> string is
-            let start = _first_non_white()
-            let end = _last_non_white()
+            let start = _first_non_white_space()
+            let end = _last_non_white_space()
 
             if start > end then
                 return ""
@@ -157,10 +157,10 @@ namespace Ghul is
         si
 
         /// The string without its leading white space.
-        trim_start() -> string => substring(_first_non_white())
+        trim_start() -> string => substring(_first_non_white_space())
 
         /// The string without its trailing white space.
-        trim_end() -> string => substring(0, _last_non_white() + 1)
+        trim_end() -> string => substring(0, _last_non_white_space() + 1)
 
         /// The string with each lower-case ASCII letter made upper case.
         to_upper() -> string is
@@ -333,7 +333,7 @@ namespace Ghul is
         ///
         /// - value: the string to test
         is_null_or_white_space(value: string?) -> bool static =>
-            !value? \/ value._first_non_white() == value.length
+            !value? \/ value._first_non_white_space() == value.length
 
         /// Negative when `a` orders before `b` by code unit, zero when they
         /// are equal, positive otherwise. Absent orders before any string.
@@ -379,7 +379,7 @@ namespace Ghul is
             return true
         si
 
-        _first_non_white() -> int is
+        _first_non_white_space() -> int is
             let i mut = 0
 
             while i < length /\ _is_white_space(self[i]) do
@@ -389,7 +389,7 @@ namespace Ghul is
             return i
         si
 
-        _last_non_white() -> int is
+        _last_non_white_space() -> int is
             let i mut = length - 1
 
             while i >= 0 /\ _is_white_space(self[i]) do

@@ -1,8 +1,5 @@
 // MAYBE and KEY_VALUE_PAIR behave as they do on .NET: a MAYBE is absent or
 // holds a value and compares by it, and a pair carries a key and a value.
-//
-// MAYBE[int]'s to_string calls to_string on an int, which the wasm target
-// does not yet compile, so the test records the diagnostic until it does.
 present() -> bool is
     let none = Ghul.MAYBE[int]()
     let some = Ghul.MAYBE[int](42)
@@ -19,5 +16,6 @@ pair() -> int is
 si
 
 entry() is
-    let ok = present() /\ pair() == 84
+    IO.Std.write_line("{present()} {pair()}")
+    IO.Std.write_line("{Ghul.MAYBE[int](42)}")
 si
