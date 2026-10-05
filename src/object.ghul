@@ -5,11 +5,24 @@ namespace Ghul is
         to_string() -> string =>
             _type_name(self);
 
-        get_hash_code() -> int =>
-            throw NotImplementedException("object.get_hash_code");
+        /// Creates an object with no state of its own.
+        init() is si
 
-        equals(other: object?) -> bool =>
-            throw NotImplementedException("object.equals");
+        /// A hash that is the same for objects `equals` counts as equal. By
+        /// default that is the object's identity, and every object of one type
+        /// hashes alike.
+        get_hash_code() -> int => _type_name(self).get_hash_code();
+
+        /// Whether `other` is this same object.
+        ///
+        /// - other: the object to compare with
+        equals(other: object?) -> bool => reference_equals(self, other);
+
+        /// Whether `a` and `b` are the same object, or both absent.
+        ///
+        /// - a: the first object
+        /// - b: the second object
+        reference_equals(a: object?, b: object?) -> bool static => a == b;
 
         /// The type of the object. A member of the same name declared on a
         /// type hides this rather than overriding it.
