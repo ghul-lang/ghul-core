@@ -87,6 +87,18 @@ namespace Ghul is
         si
     si
 
+    /// Thrown by an integer division or remainder whose divisor is zero.
+    class DivideByZeroException: ArithmeticException is
+        init() is
+            super.init("attempted to divide by zero");
+        si
+
+        /// - message: what was divided
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
     /// Thrown when a format string is not one the formatting member
     /// understands, or text is not in the format a parse expects.
     class FormatException: Exception is

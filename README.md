@@ -57,6 +57,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/list_sort` — `LIST.sort` with a comparer and with a comparison function
 - `tests/sort_dotnet` — the sort compiled for .NET and checked against
   .NET's `List.Sort` for where it leaves elements the comparer calls equal
+- `tests/bigint` — bigint's operators and members, each a host operation on the
+  host's BigInt, against the text .NET prints for the same program
 - `tests/string_members` — the string members: search, trim, split, replace,
   padding, casing and comparison
 - `tests/string_hash` — strings that are `=~` hash alike, and a union with a
