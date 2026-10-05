@@ -109,11 +109,7 @@ namespace IO is
     /// place and cannot grow past it.
     @suppress("non-upper-snake-case-name")
     class MemoryStream: Stream is
-        // Held as object so that a program that never makes a ubyte[] can
-        // still be compiled with this class in it.
-        _storage: object?
-
-        _buffer: ubyte[] => cast ubyte[](_storage)
+        _buffer: ubyte[]
         _origin: int
         _length: int
         _position: int
@@ -137,7 +133,7 @@ namespace IO is
                 throw Ghul.ArgumentOutOfRangeException("capacity")
             fi
 
-            _storage = Ghul._array_new[ubyte](capacity)
+            _buffer = Ghul._array_new[ubyte](capacity)
             _origin = 0
             _capacity = capacity
             _length = 0
@@ -196,7 +192,7 @@ namespace IO is
                 throw Ghul.ArgumentException("Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.")
             fi
 
-            _storage = buffer
+            _buffer = buffer
             _origin = index
             _capacity = index + count
             _length = index + count
@@ -429,7 +425,7 @@ namespace IO is
                 i = i + 1
             od
 
-            _storage = grown
+            _buffer = grown
             _capacity = size
         si
 

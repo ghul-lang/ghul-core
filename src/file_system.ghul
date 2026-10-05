@@ -40,30 +40,14 @@ namespace IO is
     // where it was created, or where a file or directory below it does; the
     // root always exists.
     class _FILE_STORE is
-        // Held as object, and made when first used, so that a program that
-        // never touches a file can still be compiled with this class in it.
-        _file_map: object? static
-        _directory_set: object? static
+        _files: Collections.MAP[string, ubyte[]] static
+        _directories: Collections.SET[string] static
         _current: string static
 
         init() static is
+            _files = Collections.MAP[string, ubyte[]]()
+            _directories = Collections.SET[string]()
             _current = "/"
-        si
-
-        _files: Collections.MAP[string, ubyte[]] static is
-            if !_file_map? then
-                _file_map = Collections.MAP[string, ubyte[]]()
-            fi
-
-            return cast Collections.MAP[string, ubyte[]](_file_map)
-        si
-
-        _directories: Collections.SET[string] static is
-            if !_directory_set? then
-                _directory_set = Collections.SET[string]()
-            fi
-
-            return cast Collections.SET[string](_directory_set)
         si
 
         current: string static => _current
@@ -986,7 +970,7 @@ namespace IO is
     @suppress("non-upper-snake-case-name")
     class StreamWriter: TextWriter is
         _path: string
-        _start: object
+        _start: ubyte[]
         _text: Text.STRING_BUILDER
 
         /// A writer over a new file at `path`, replacing any that is there.
@@ -1012,7 +996,7 @@ namespace IO is
             _text.append(text)
 
         flush() =>
-            _FILE_STORE.write(_path, _FILE_STORE.concat(cast ubyte[](_start), _UTF8.encode(_text.to_string())))
+            _FILE_STORE.write(_path, _FILE_STORE.concat(_start, _UTF8.encode(_text.to_string())))
 
         /// Flushes the writer and releases it.
         close() =>

@@ -10,12 +10,9 @@ namespace Ghul is
         _s3: ulong
 
         // The state of a generator given a seed: the subtractive generator
-        // .NET's seeded System.Random uses. The array is held as an object,
-        // since the wasm target lays out every field of a class a program
-        // compiles, and an int array exists only where the seeded generator
-        // is used.
+        // .NET's seeded System.Random uses.
         _is_compatible: bool
-        _seed_array: object?
+        _seed_array: int[]?
         _inext: int
         _inextp: int
 
@@ -221,7 +218,7 @@ namespace Ghul is
         si
 
         _internal_sample() -> int is
-            let seed_array = cast int[](_seed_array)
+            let seed_array = _seed_array!
 
             let next mut = _inext + 1
 

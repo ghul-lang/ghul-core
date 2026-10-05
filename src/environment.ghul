@@ -38,19 +38,14 @@ namespace Ghul is
         si
 
         // The variables' names and values, at the same positions, the first
-        // _count of each array in use. The arrays are held as object, since
-        // the wasm target cannot yet lay out a field whose type a program
-        // that never uses ENVIRONMENT does not otherwise instantiate.
-        _name_store: object
-        _value_store: object
+        // _count of each array in use.
+        _names: string[]
+        _values: string[]
         _count: int
 
-        _names: string[] => cast string[](_name_store)
-        _values: string[] => cast string[](_value_store)
-
         init() is
-            _name_store = Ghul._array_new[string](0)
-            _value_store = Ghul._array_new[string](0)
+            _names = Ghul._array_new[string](0)
+            _values = Ghul._array_new[string](0)
 
             let count = _environment_count()
             let i mut = 0
@@ -152,8 +147,8 @@ namespace Ghul is
             if _count == _names.count then
                 let capacity = if _count == 0 then 4 else _count * 2 fi
 
-                _name_store = _grow(_names, capacity)
-                _value_store = _grow(_values, capacity)
+                _names = _grow(_names, capacity)
+                _values = _grow(_values, capacity)
             fi
 
             Ghul._array_set(_names, _count, name)
