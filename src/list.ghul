@@ -144,7 +144,7 @@ namespace Collections is
         /// leaving elements it calls equal where .NET's sort leaves them.
         ///
         /// - comparer: orders two elements
-        sort(comparer: IComparer[T]) is
+        sort(comparer: Comparer[T]) is
             Ghul._introsort(_items, _count, comparer);
         si
 
@@ -259,7 +259,7 @@ si
 namespace Ghul is
     // Orders by calling a comparison function, so a sort given one can run
     // through the comparer the sort takes.
-    class _FUNCTION_COMPARER[T]: Collections.IComparer[T] is
+    class _FUNCTION_COMPARER[T]: Collections.Comparer[T] is
         _compare: (T, T) -> int
 
         init(compare: (T, T) -> int) is

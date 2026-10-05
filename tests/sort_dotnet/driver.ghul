@@ -4,7 +4,7 @@
 namespace Harness is
     use IO.Std.write_line
 
-    class BY_KEY: Collections.IComparer[(key: int, position: int)] is
+    class BY_KEY: Collections.Comparer[(key: int, position: int)] is
         init() is si
 
         compare(a: (key: int, position: int), b: (key: int, position: int)) -> int => a.key.compare_to(b.key)
