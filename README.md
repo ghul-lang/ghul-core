@@ -38,6 +38,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/ranges` — the `..` and `::` operators and the range types they
   produce
 - `tests/maybe` — `MAYBE` and `KEY_VALUE_PAIR`
+- `tests/math` — `Math`'s constants and functions, against .NET's values
+- `tests/random` — `RANDOM`: a seed fixes the sequence, and every value is in range
 - `tests/list` — `LIST` and the list traits
 - `tests/map` — `MAP`, `SET` and the map and set traits, and finding
   elements of a `LIST` by `=~`
