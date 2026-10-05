@@ -156,6 +156,142 @@ namespace Collections is
             Ghul._introsort(_items, _count, Ghul._FUNCTION_COMPARER[T](compare));
         si
 
+        /// Sorts the elements in place in their own order: each must be a
+        /// `Ghul.Comparable[T]`. Throws `Ghul.InvalidOperationException`
+        /// where an element is not comparable or is absent.
+        sort() is
+            Ghul._introsort(_items, _count, Ghul._DEFAULT_COMPARER[T]());
+        si
+
+        /// Reverses the order of the elements in place.
+        reverse() is
+            reverse(0, _count);
+        si
+
+        /// Reverses the order of `count` elements in place, starting at
+        /// `index`.
+        ///
+        /// - index: the position of the first element to reverse
+        /// - count: the number of elements to reverse
+        reverse(index: int, count: int) is
+            _check_range(index, count);
+
+            let low mut = index;
+            let high mut = index + count - 1;
+
+            while low < high do
+                let held = _items[low];
+
+                Ghul._array_set(_items, low, _items[high]);
+                Ghul._array_set(_items, high, held);
+
+                low = low + 1;
+                high = high - 1;
+            od
+        si
+
+        /// Removes `count` elements starting at `index`, moving the elements
+        /// after them down.
+        ///
+        /// - index: the position of the first element to remove
+        /// - count: the number of elements to remove
+        remove_range(index: int, count: int) is
+            _check_range(index, count);
+
+            let i mut = index;
+
+            while i + count < _count do
+                Ghul._array_set(_items, i, _items[i + count]);
+                i = i + 1;
+            od
+
+            while i < _count do
+                Ghul._array_set(_items, i, _[T]);
+                i = i + 1;
+            od
+
+            _count = _count - count;
+        si
+
+        /// Removes every element `match` accepts, keeping the others in
+        /// order, and answers how many it removed.
+        ///
+        /// - match: whether to remove an element
+        remove_all(match: T -> bool) -> int is
+            let kept mut = 0;
+            let i mut = 0;
+
+            while i < _count do
+                let value = _items[i];
+
+                if !match(value) then
+                    Ghul._array_set(_items, kept, value);
+                    kept = kept + 1;
+                fi
+
+                i = i + 1;
+            od
+
+            let removed = _count - kept;
+
+            i = kept;
+
+            while i < _count do
+                Ghul._array_set(_items, i, _[T]);
+                i = i + 1;
+            od
+
+            _count = kept;
+
+            return removed;
+        si
+
+        /// Inserts the elements of `source`, in order, at `index`, moving the
+        /// elements from there up.
+        ///
+        /// - index: where the first inserted element goes
+        /// - source: the elements to insert
+        insert_range(index: int, source: Iterable[T]) is
+            if index < 0 \/ index > _count then
+                throw Ghul.ArgumentOutOfRangeException("index");
+            fi
+
+            let added = LIST[T](source);
+            let n = added.count;
+
+            _ensure_room(_count + n);
+
+            let i mut = _count - 1;
+
+            while i >= index do
+                Ghul._array_set(_items, i + n, _items[i]);
+                i = i - 1;
+            od
+
+            let j mut = 0;
+
+            while j < n do
+                Ghul._array_set(_items, index + j, added[j]);
+                j = j + 1;
+            od
+
+            _count = _count + n;
+        si
+
+        _check_range(index: int, count: int) is
+            if index < 0 then
+                throw Ghul.ArgumentOutOfRangeException("index");
+            fi
+
+            if count < 0 then
+                throw Ghul.ArgumentOutOfRangeException("count");
+            fi
+
+            if index + count > _count then
+                throw Ghul.ArgumentException("Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.");
+            fi
+        si
+
         /// Removes the first element `=~` to `value`, answering whether
         /// there was one.
         ///
@@ -257,6 +393,23 @@ namespace Collections is
 si
 
 namespace Ghul is
+    // Orders by each value's own `Comparable[T]`, as .NET's default comparer
+    // orders by `IComparable<T>`. A value that is not comparable, an absent
+    // one included, cannot be ordered at all.
+    class _DEFAULT_COMPARER[T]: Collections.Comparer[T] is
+        init() is si
+
+        compare(x: T, y: T) -> int is
+            let comparable = cast Comparable[T]?(x);
+
+            if comparable? then
+                return comparable <> y;
+            fi
+
+            throw InvalidOperationException("Failed to compare two elements in the array.");
+        si
+    si
+
     // Orders by calling a comparison function, so a sort given one can run
     // through the comparer the sort takes.
     class _FUNCTION_COMPARER[T]: Collections.Comparer[T] is

@@ -55,6 +55,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   checked against .NET's own text for fixed and random values of every
   magnitude, under every format the formatter covers
 - `tests/list_sort` — `LIST.sort` with a comparer and with a comparison function
+- `tests/list_members` — `LIST`'s sort, reverse and range members, and the scalar
+  `Math` members, against .NET's output
 - `tests/sort_dotnet` — the sort compiled for .NET and checked against
   .NET's `List.Sort` for where it leaves elements the comparer calls equal
 - `tests/bigint` — bigint's operators and members, each a host operation on the
