@@ -65,23 +65,29 @@ namespace Ghul is
 
     _format_integer(negative: bool, magnitude: ulong, raw: ulong, format: string) -> string is
         let spec = _parsed_format(format)
-        let digits = _trimmed_digits(_unsigned_text(magnitude))
-        let point = _unsigned_text(magnitude).length
-        let shown_negative = negative /\ magnitude != 0ul
+
+        if spec.kind == 'X' then
+            return _padded_left(_hex_text(raw, spec.upper), spec.precision, '0')
+        fi
+
+        return _format_integer_text(negative /\ magnitude != 0ul, _unsigned_text(magnitude), format)
+    si
+
+    // An integer of any size given as its sign and the decimal digits of its
+    // magnitude, "0" for zero, under any format but `X`.
+    _format_integer_text(shown_negative: bool, text: string, format: string) -> string is
+        let spec = _parsed_format(format)
+        let digits = _trimmed_digits(text)
+        let point = text.length
 
         case spec.kind
         when 'D' then
-            let text = _padded_left(if magnitude == 0ul then "0" else _unsigned_text(magnitude) fi, spec.precision, '0')
+            let padded = _padded_left(text, spec.precision, '0')
 
-            return if shown_negative then _string_concat("-", text) else text fi
-
-        when 'X' then
-            return _padded_left(_hex_text(raw, spec.upper), spec.precision, '0')
+            return if shown_negative then _string_concat("-", padded) else padded fi
 
         when 'G' then
             if spec.precision <= 0 then
-                let text = _unsigned_text(magnitude)
-
                 return if shown_negative then _string_concat("-", text) else text fi
             fi
 
@@ -90,8 +96,6 @@ namespace Ghul is
             return _general_layout(shown_negative, rounded.digits, rounded.point, spec.precision, spec.upper, 2)
 
         when 'R' then
-            let text = _unsigned_text(magnitude)
-
             return if shown_negative then _string_concat("-", text) else text fi
 
         when 'C' then

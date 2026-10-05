@@ -1,5 +1,5 @@
 {
-    "name": "bigint",
+    "name": "bigint-conversions",
     "targets": ["wasm"],
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
