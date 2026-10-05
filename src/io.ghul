@@ -2,13 +2,26 @@ namespace IO is
     /// The console: standard output and standard error, written either
     /// through `Std`'s own members or through the writers `out` and `error`.
     class Std is
+        _in: TextReader static
         _out: TextWriter static
         _error: TextWriter static
 
         init() static is
+            _in = _HOST_READER()
             _out = _HOST_WRITER(1)
             _error = _HOST_WRITER(2)
         si
+
+        /// The reader for standard input.
+        `in: TextReader static => _in
+
+        /// Reads the next line of standard input, without its line break,
+        /// or null at the end of the input.
+        read_line() -> string? static => _in.read_line()
+
+        /// Reads the next character of standard input, or -1 at the end of
+        /// the input.
+        read() -> int static => _in.read()
 
         /// The writer for standard output.
         out: TextWriter static => _out
@@ -51,6 +64,47 @@ namespace IO is
         // standard error.
         @intrinsic("host.write")
         _write(text: string, stream: int) static
+    si
+
+    /// Reads text from a stream, a line or a character at a time.
+    class TextReader abstract is
+        init() is si
+
+        /// Reads the next line, without its line break, or null at the end
+        /// of the text. A line ends at a line feed, a carriage return, or a
+        /// carriage return followed by a line feed.
+        read_line() -> string?;
+
+        /// Reads the next character, or -1 at the end of the text.
+        read() -> int;
+
+        /// The next character, left unread, or -1 at the end of the text.
+        peek() -> int;
+
+        /// Reads everything left, which is empty at the end of the text.
+        read_to_end() -> string;
+    si
+
+    // Standard input, read through the host.
+    class _HOST_READER: TextReader is
+        init() is super.init() si
+
+        read_line() -> string? => _read_line()
+        read() -> int => _read()
+        peek() -> int => _peek()
+        read_to_end() -> string => _read_to_end()
+
+        @intrinsic("host.stdin_read_line")
+        _read_line() -> string? static
+
+        @intrinsic("host.stdin_read")
+        _read() -> int static
+
+        @intrinsic("host.stdin_peek")
+        _peek() -> int static
+
+        @intrinsic("host.stdin_read_to_end")
+        _read_to_end() -> string static
     si
 
     /// Writes text to a stream, a line or a piece at a time.

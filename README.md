@@ -68,6 +68,10 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   string field compared by its contents
 - `tests/std_writers` — standard output and standard error written through
   `IO.Std` and through its `out` and `error` writers
+- `tests/standard-input` — standard input read a line, a character and the
+  rest at a time through `IO.Std` and its `in` reader
+- `tests/file-system` — `Path` against .NET's answers, and `File` and
+  `Directory` answering as an empty file system that cannot be changed
 - `tests/tuples` — tuple elements read by position and by name, and a
   tuple destructured
 - `tests/exceptions` — the exceptions the compiler makes or catches on the

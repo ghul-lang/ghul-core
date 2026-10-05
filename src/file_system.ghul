@@ -1,0 +1,330 @@
+namespace IO is
+    // The wasm target has no file system yet. Every member here behaves as
+    // .NET's would over an empty file system that cannot be changed: a query
+    // answers as it would for a path that does not exist, reading a file
+    // throws FileNotFoundException, and anything that would create, change
+    // or remove a file or directory throws Ghul.NotSupportedException naming
+    // the operation. Path works on strings alone and is complete.
+
+    /// Thrown when reading or writing a file or directory fails.
+    class IOException: Ghul.Exception is
+        /// - message: what went wrong
+        init(message: string) is
+            super.init(message)
+        si
+    si
+
+    /// Thrown when a file that is read does not exist.
+    class FileNotFoundException: IOException is
+        /// - message: what went wrong
+        init(message: string) is
+            super.init(message)
+        si
+    si
+
+    /// Thrown when a directory that is used does not exist.
+    class DirectoryNotFoundException: IOException is
+        /// - message: what went wrong
+        init(message: string) is
+            super.init(message)
+        si
+    si
+
+    /// Whether a search of a directory includes its subdirectories.
+    enum SearchOption is
+        TOP_DIRECTORY_ONLY,
+        ALL_DIRECTORIES
+    si
+
+    // The answers the members below give, so that every member gives the
+    // same one for the same situation.
+    class _NO_FILE_SYSTEM is
+        missing_file(path: string) -> FileNotFoundException static =>
+            FileNotFoundException("Could not find file '{path}'.")
+
+        missing_directory(path: string) -> DirectoryNotFoundException static =>
+            DirectoryNotFoundException("Could not find a part of the path '{path}'.")
+
+        cannot(operation: string) -> Ghul.NotSupportedException static =>
+            Ghul.NotSupportedException("{operation} is not supported on the wasm target, which has no file system")
+    si
+
+    /// Reads and writes whole files. On the wasm target there are no files:
+    /// `exists` is false, reading a file throws `FileNotFoundException`, and
+    /// creating, writing, copying, moving or deleting one throws
+    /// `Ghul.NotSupportedException`.
+    class File is
+        /// Whether a file exists at `path`. Always false on the wasm target.
+        ///
+        /// - path: the file to look for
+        exists(path: string?) -> bool static => false
+
+        /// Every line of the file at `path`.
+        ///
+        /// - path: the file to read
+        read_all_lines(path: string) -> string[] static => throw _NO_FILE_SYSTEM.missing_file(path)
+
+        /// The lines of the file at `path`, read as they are asked for.
+        ///
+        /// - path: the file to read
+        read_lines(path: string) -> Collections.Iterable[string] static => throw _NO_FILE_SYSTEM.missing_file(path)
+
+        /// The whole text of the file at `path`.
+        ///
+        /// - path: the file to read
+        read_all_text(path: string) -> string static => throw _NO_FILE_SYSTEM.missing_file(path)
+
+        /// The bytes of the file at `path`.
+        ///
+        /// - path: the file to read
+        read_all_bytes(path: string) -> ubyte[] static => throw _NO_FILE_SYSTEM.missing_file(path)
+
+        /// A reader over the text of the file at `path`.
+        ///
+        /// - path: the file to read
+        open_text(path: string) -> StreamReader static => throw _NO_FILE_SYSTEM.missing_file(path)
+
+        /// Writes `contents` to the file at `path`, replacing it.
+        ///
+        /// - path: the file to write
+        /// - contents: the text to write
+        write_all_text(path: string, contents: string?) static => throw _NO_FILE_SYSTEM.cannot("File.write_all_text")
+
+        /// Writes each of `contents` as a line of the file at `path`, replacing it.
+        ///
+        /// - path: the file to write
+        /// - contents: the lines to write
+        write_all_lines(path: string, contents: Collections.Iterable[string]) static => throw _NO_FILE_SYSTEM.cannot("File.write_all_lines")
+
+        /// Writes `bytes` to the file at `path`, replacing it.
+        ///
+        /// - path: the file to write
+        /// - bytes: the bytes to write
+        write_all_bytes(path: string, bytes: ubyte[]) static => throw _NO_FILE_SYSTEM.cannot("File.write_all_bytes")
+
+        /// Adds `contents` to the end of the file at `path`.
+        ///
+        /// - path: the file to add to
+        /// - contents: the text to add
+        append_all_text(path: string, contents: string?) static => throw _NO_FILE_SYSTEM.cannot("File.append_all_text")
+
+        /// Adds each of `contents` as a line at the end of the file at `path`.
+        ///
+        /// - path: the file to add to
+        /// - contents: the lines to add
+        append_all_lines(path: string, contents: Collections.Iterable[string]) static => throw _NO_FILE_SYSTEM.cannot("File.append_all_lines")
+
+        /// A writer adding text to the end of the file at `path`.
+        ///
+        /// - path: the file to add to
+        append_text(path: string) -> StreamWriter static => throw _NO_FILE_SYSTEM.cannot("File.append_text")
+
+        /// A writer over a new file at `path`, replacing any that is there.
+        ///
+        /// - path: the file to create
+        create_text(path: string) -> StreamWriter static => throw _NO_FILE_SYSTEM.cannot("File.create_text")
+
+        /// Copies the file at `source` to `destination`.
+        ///
+        /// - source: the file to copy
+        /// - destination: where the copy goes
+        copy(source: string, destination: string) static => throw _NO_FILE_SYSTEM.cannot("File.copy")
+
+        /// Copies the file at `source` to `destination`.
+        ///
+        /// - source: the file to copy
+        /// - destination: where the copy goes
+        /// - overwrite: whether to replace a file already at `destination`
+        copy(source: string, destination: string, overwrite: bool) static => throw _NO_FILE_SYSTEM.cannot("File.copy")
+
+        /// Moves the file at `source` to `destination`.
+        ///
+        /// - source: the file to move
+        /// - destination: where it goes
+        move(source: string, destination: string) static => throw _NO_FILE_SYSTEM.cannot("File.move")
+
+        /// Deletes the file at `path`.
+        ///
+        /// - path: the file to delete
+        delete(path: string) static => throw _NO_FILE_SYSTEM.cannot("File.delete")
+    si
+
+    /// Creates, lists and removes directories. On the wasm target there are
+    /// none: `exists` is false, listing a directory throws
+    /// `DirectoryNotFoundException`, and creating, moving or deleting one, or
+    /// changing the current directory, throws `Ghul.NotSupportedException`.
+    class Directory is
+        /// Whether a directory exists at `path`. Always false on the wasm target.
+        ///
+        /// - path: the directory to look for
+        exists(path: string?) -> bool static => false
+
+        /// The current directory, which is the root on the wasm target.
+        get_current_directory() -> string static => "/"
+
+        /// Makes `path` the current directory.
+        ///
+        /// - path: the new current directory
+        set_current_directory(path: string) static => throw _NO_FILE_SYSTEM.cannot("Directory.set_current_directory")
+
+        /// Creates the directory at `path`, and any above it that are missing.
+        ///
+        /// - path: the directory to create
+        create_directory(path: string) -> DirectoryInfo static => throw _NO_FILE_SYSTEM.cannot("Directory.create_directory")
+
+        /// Deletes the empty directory at `path`.
+        ///
+        /// - path: the directory to delete
+        delete(path: string) static => throw _NO_FILE_SYSTEM.cannot("Directory.delete")
+
+        /// Deletes the directory at `path`, and everything in it where `recursive` is true.
+        ///
+        /// - path: the directory to delete
+        /// - recursive: whether to delete what it holds too
+        delete(path: string, recursive: bool) static => throw _NO_FILE_SYSTEM.cannot("Directory.delete")
+
+        /// Moves the directory at `source` to `destination`.
+        ///
+        /// - source: the directory to move
+        /// - destination: where it goes
+        move(source: string, destination: string) static => throw _NO_FILE_SYSTEM.cannot("Directory.move")
+
+        /// The paths of the files in the directory at `path`.
+        ///
+        /// - path: the directory to list
+        get_files(path: string) -> string[] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files in the directory at `path` whose names match `pattern`.
+        ///
+        /// - path: the directory to list
+        /// - pattern: the names to match, with `*` and `?` as wildcards
+        get_files(path: string, pattern: string) -> string[] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files under the directory at `path` whose names match `pattern`.
+        ///
+        /// - path: the directory to list
+        /// - pattern: the names to match, with `*` and `?` as wildcards
+        /// - option: whether to include subdirectories
+        get_files(path: string, pattern: string, option: SearchOption) -> string[] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the directories in the directory at `path`.
+        ///
+        /// - path: the directory to list
+        get_directories(path: string) -> string[] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files and directories in the directory at `path`.
+        ///
+        /// - path: the directory to list
+        get_file_system_entries(path: string) -> string[] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files in the directory at `path`, found as they are asked for.
+        ///
+        /// - path: the directory to list
+        enumerate_files(path: string) -> Collections.Iterable[string] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files in the directory at `path` whose names match `pattern`, found as they are asked for.
+        ///
+        /// - path: the directory to list
+        /// - pattern: the names to match, with `*` and `?` as wildcards
+        enumerate_files(path: string, pattern: string) -> Collections.Iterable[string] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files under the directory at `path` whose names match `pattern`, found as they are asked for.
+        ///
+        /// - path: the directory to list
+        /// - pattern: the names to match, with `*` and `?` as wildcards
+        /// - option: whether to include subdirectories
+        enumerate_files(path: string, pattern: string, option: SearchOption) -> Collections.Iterable[string] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the directories in the directory at `path`, found as they are asked for.
+        ///
+        /// - path: the directory to list
+        enumerate_directories(path: string) -> Collections.Iterable[string] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+
+        /// The paths of the files and directories in the directory at `path`, found as they are asked for.
+        ///
+        /// - path: the directory to list
+        enumerate_file_system_entries(path: string) -> Collections.Iterable[string] static => throw _NO_FILE_SYSTEM.missing_directory(path)
+    si
+
+    /// A file, named by its path. On the wasm target it never exists.
+    @suppress("non-upper-snake-case-name")
+    class FileInfo is
+        _path: string
+
+        /// - path: the file's path
+        init(path: string) is
+            _path = path
+        si
+
+        /// The file's name, without the directories above it.
+        name: string => Path.get_file_name(_path)
+
+        /// The file's path from the root.
+        full_name: string => Path.get_full_path(_path)
+
+        /// Whether the file exists. Always false on the wasm target.
+        exists: bool => false
+
+        /// The file's size in bytes.
+        length: long => throw _NO_FILE_SYSTEM.missing_file(_path)
+    si
+
+    /// A directory, named by its path. On the wasm target it never exists.
+    @suppress("non-upper-snake-case-name")
+    class DirectoryInfo is
+        _path: string
+
+        /// - path: the directory's path
+        init(path: string) is
+            _path = path
+        si
+
+        /// The directory's name, without the directories above it.
+        name: string => Path.get_file_name(_path.trim_end('/'))
+
+        /// The directory's path from the root.
+        full_name: string => Path.get_full_path(_path)
+
+        /// Whether the directory exists. Always false on the wasm target.
+        exists: bool => false
+    si
+
+    /// Reads the text of a file. On the wasm target there are no files, so
+    /// opening one throws `FileNotFoundException`.
+    @suppress("non-upper-snake-case-name")
+    class StreamReader: TextReader is
+        /// - path: the file to read
+        init(path: string) is
+            super.init()
+
+            throw _NO_FILE_SYSTEM.missing_file(path)
+        si
+
+        read_line() -> string? => null
+        read() -> int => -1
+        peek() -> int => -1
+        read_to_end() -> string => ""
+    si
+
+    /// Writes text to a file. On the wasm target there are no files, so
+    /// opening one throws `Ghul.NotSupportedException`.
+    @suppress("non-upper-snake-case-name")
+    class StreamWriter: TextWriter is
+        /// - path: the file to write
+        init(path: string) is
+            super.init()
+
+            throw _NO_FILE_SYSTEM.cannot("StreamWriter")
+        si
+
+        /// - path: the file to write
+        /// - append: whether to add to the end of the file rather than replace it
+        init(path: string, append: bool) is
+            super.init()
+
+            throw _NO_FILE_SYSTEM.cannot("StreamWriter")
+        si
+
+        write(text: string) is si
+    si
+si
