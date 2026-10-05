@@ -45,6 +45,11 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/float_text_dotnet` — the floating-point formatter compiled for .NET
   and checked against .NET's own text for boundary values and random bit
   patterns
+- `tests/number_format` — the numeric types' `to_string(format)` on the wasm target,
+  against the text .NET writes for the same calls
+- `tests/number_format_dotnet` — the numeric formatter compiled for .NET and
+  checked against .NET's own text for fixed and random values of every
+  magnitude, under every format the formatter covers
 - `tests/string_members` — the string members: search, trim, split, replace,
   padding, casing and comparison
 - `tests/string_hash` — strings that are `=~` hash alike, and a union with a

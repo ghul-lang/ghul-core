@@ -87,6 +87,15 @@ namespace Ghul is
         si
     si
 
+    /// Thrown when a format string is not one the formatting member
+    /// understands.
+    class FormatException: Exception is
+        /// - message: what was wrong with the format
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
     /// Thrown when an argument is not one a member accepts.
     class ArgumentException: Exception is
         /// - message: which argument was not accepted
