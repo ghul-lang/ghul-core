@@ -15,6 +15,13 @@ entry() is
     write_line("{Math.min(0.0s, -0.0s)} {Math.max(-0.0s, 0.0s)} {Math.min(0.0, -0.0)} {Math.max(-0.0, 0.0)}")
 
     try
+        Math.abs(-2147483647 - 1)
+        write_line("no throw")
+    catch ex: Ghul.OverflowException
+        write_line("abs of the least int throws")
+    yrt
+
+    try
         Math.sign(0.0 / 0.0)
         write_line("no throw")
     catch ex: Ghul.ArithmeticException

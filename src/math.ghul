@@ -11,11 +11,37 @@ namespace Ghul is
         /// The base of the natural logarithm.
         e: double static => 2.718281828459045
 
-        /// The magnitude of `value`.
-        abs(value: int) -> int static pure => if value < 0 then -value else value fi
+        /// The magnitude of `value`. Throws `OverflowException` where `value` is
+        /// the least `int`, whose magnitude does not fit.
+        abs(value: int) -> int static is
+            if value >= 0 then
+                return value
+            fi
 
-        /// The magnitude of `value`.
-        abs(value: long) -> long static pure => if value < 0L then -value else value fi
+            let magnitude = -value
+
+            if magnitude < 0 then
+                throw OverflowException("negating the minimum value of a twos complement number is invalid")
+            fi
+
+            return magnitude
+        si
+
+        /// The magnitude of `value`. Throws `OverflowException` where `value` is
+        /// the least `long`, whose magnitude does not fit.
+        abs(value: long) -> long static is
+            if value >= 0L then
+                return value
+            fi
+
+            let magnitude = -value
+
+            if magnitude < 0L then
+                throw OverflowException("negating the minimum value of a twos complement number is invalid")
+            fi
+
+            return magnitude
+        si
 
         /// The magnitude of `value`.
         abs(value: double) -> double static pure =>
