@@ -1,0 +1,2 @@
+# Standard input with mixed line endings, which the test reads exactly.
+tests/standard-input/run.in -text

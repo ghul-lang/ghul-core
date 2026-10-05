@@ -1,0 +1,34 @@
+// Path takes paths apart and puts them together as .NET does on Linux, and
+// the file system answers as an empty one that cannot be changed.
+
+use default
+
+for p in ["/a/b/c.txt", "a/b", "/", "", "c.tar.gz", "dir/", "/x", ".hidden", "noext."] do
+    write_line("[{p}] name=[{IO.Path.get_file_name(p)}] stem=[{IO.Path.get_file_name_without_extension(p)}] ext=[{IO.Path.get_extension(p)}] has={IO.Path.has_extension(p)} dir=[{IO.Path.get_directory_name(p) ?? "null"}] rooted={IO.Path.is_path_rooted(p)}")
+od
+write_line(IO.Path.combine("a", "b"))
+write_line(IO.Path.combine("a/", "b"))
+write_line(IO.Path.combine("a", "/b"))
+write_line(IO.Path.combine("", "b"))
+write_line(IO.Path.combine("a", ""))
+write_line(IO.Path.combine("a", "b", "c"))
+write_line(IO.Path.combine("a", "b", "c", "d"))
+write_line(IO.Path.combine(["x", "y", "z"]))
+write_line(IO.Path.change_extension("/a/b.txt", ".md"))
+write_line(IO.Path.change_extension("/a/b.txt", "md"))
+write_line(IO.Path.change_extension("/a/b", ".md"))
+write_line(IO.Path.get_full_path("/a/./b/../c"))
+write_line(IO.Path.get_full_path("/a/b/"))
+write_line(IO.Path.get_relative_path("/a/b", "/a/c/d"))
+write_line(IO.Path.get_relative_path("/a/b", "/a/b"))
+write_line("{IO.File.exists("/x")} {IO.Directory.exists("/x")}")
+try
+    IO.File.read_all_lines("/data.txt")
+catch e: IO.FileNotFoundException
+    write_line("missing: {e.message}")
+yrt
+try
+    IO.File.write_all_text("/out.txt", "hi")
+catch e: Ghul.NotSupportedException
+    write_line("unsupported")
+yrt
