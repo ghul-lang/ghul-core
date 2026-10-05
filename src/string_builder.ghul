@@ -1,15 +1,114 @@
 namespace Text is
-    /// Accumulates the text of an interpolated string, a piece at a time.
+    /// Accumulates text a piece at a time, as an interpolated string does.
     class STRING_BUILDER is
         _text: string?
 
         init() is si
 
-        /// Appends `text` to the text built so far.
+        /// Appends `text` to the text built so far, and returns this builder.
         ///
         /// - text: the text to append
-        append(text: string) is
+        append(text: string) -> STRING_BUILDER is
             _text = _string_concat(_text, text)
+            return self
+        si
+
+        /// Appends `value`, and returns this builder.
+        ///
+        /// - value: the code unit to append
+        append(value: char) -> STRING_BUILDER => append(_string_from_char(value))
+
+        /// Appends `count` copies of `value`, and returns this builder.
+        ///
+        /// - value: the code unit to append
+        /// - count: how many copies to append
+        append(value: char, count: int) -> STRING_BUILDER is
+            let i mut = 0
+
+            while i < count do
+                append(value)
+                i = i + 1
+            od
+
+            return self
+        si
+
+        /// Appends the text of `value`, and returns this builder.
+        ///
+        /// - value: the value to append
+        append(value: int) -> STRING_BUILDER => append(value.to_string())
+
+        /// Appends the text of `value`, and returns this builder.
+        ///
+        /// - value: the value to append
+        append(value: long) -> STRING_BUILDER => append(value.to_string())
+
+        /// Appends the text of `value`, and returns this builder.
+        ///
+        /// - value: the value to append
+        append(value: double) -> STRING_BUILDER => append(value.to_string())
+
+        /// Appends `True` or `False`, as .NET writes a `bool`, and returns this
+        /// builder.
+        ///
+        /// - value: the value to append
+        append(value: bool) -> STRING_BUILDER => append(if value then "True" else "False" fi)
+
+        /// Appends the text of `value`, nothing where it is absent, and
+        /// returns this builder.
+        ///
+        /// - value: the value to append
+        append(value: object?) -> STRING_BUILDER =>
+            if value? then append(value.to_string()) else self fi
+
+        /// Appends a line break, and returns this builder.
+        append_line() -> STRING_BUILDER => append("\n")
+
+        /// Appends `text` and a line break, and returns this builder.
+        ///
+        /// - text: the text to append
+        append_line(text: string) -> STRING_BUILDER => append(text).append("\n")
+
+        /// The number of code units built so far.
+        length: int => if let text = _text then text.length else 0 fi
+
+        /// The code unit at `index`.
+        ///
+        /// - index: the position of the code unit, from 0
+        [index: int]: char => to_string()[index]
+
+        /// Removes everything built so far, and returns this builder.
+        clear() -> STRING_BUILDER is
+            _text = null
+            return self
+        si
+
+        /// Inserts `value` at `index`, and returns this builder.
+        ///
+        /// - index: where to insert, from 0 to `length`
+        /// - value: the text to insert
+        insert(index: int, value: string) -> STRING_BUILDER is
+            let text = to_string()
+
+            _text = _string_concat(_string_concat(text.substring(0, index), value), text.substring(index))
+            return self
+        si
+
+        /// Inserts `value` at `index`, and returns this builder.
+        ///
+        /// - index: where to insert, from 0 to `length`
+        /// - value: the code unit to insert
+        insert(index: int, value: char) -> STRING_BUILDER => insert(index, _string_from_char(value))
+
+        /// Removes `count` code units from `start`, and returns this builder.
+        ///
+        /// - start: where to start removing
+        /// - count: how many code units to remove
+        remove(start: int, count: int) -> STRING_BUILDER is
+            let text = to_string()
+
+            _text = _string_concat(text.substring(0, start), text.substring(start + count))
+            return self
         si
 
         // Appends `text` padded with spaces to `alignment` characters: on the
