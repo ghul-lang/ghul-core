@@ -1,7 +1,7 @@
 {
     "name": "bigint-conversions",
     "targets": ["wasm"],
-    "compiler": "64.31.0",
+    "compiler": "65.0.1",
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
     "dependencies": {
