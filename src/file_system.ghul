@@ -3,9 +3,9 @@ namespace IO is
     // in memory for as long as the program runs: it starts with only the
     // root directory, which is also the current directory, and sees exactly
     // what it has written. Every write is also handed to the host, which
-    // keeps the file beneath its own working directory. Each member answers as .NET's does over a file system
-    // holding the same files, with the same exceptions where a path is
-    // missing. Path works on strings alone.
+    // keeps the file beneath its own working directory. Each member answers
+    // as .NET's does over a file system holding the same files, with the
+    // same exceptions where a path is missing. Path works on strings alone.
 
     /// Thrown when reading or writing a file or directory fails.
     class IOException: Ghul.Exception is
