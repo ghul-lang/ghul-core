@@ -1,8 +1,9 @@
 namespace IO is
-    // The wasm target has no host file system. Files and directories live in
-    // memory for as long as the program runs: it starts with only the root
-    // directory, which is also the current directory, and sees exactly what
-    // it has written. Each member answers as .NET's does over a file system
+    // The wasm target reads no host file system. Files and directories live
+    // in memory for as long as the program runs: it starts with only the
+    // root directory, which is also the current directory, and sees exactly
+    // what it has written. Every write is also handed to the host, which
+    // keeps the file beneath its own working directory. Each member answers as .NET's does over a file system
     // holding the same files, with the same exceptions where a path is
     // missing. Path works on strings alone.
 
@@ -122,7 +123,17 @@ namespace IO is
             fi
 
             _files[full_path] = bytes
+
+            _file_written(full_path.substring(1), _BASE64.encode(bytes))
         si
+
+        // Hands every write to the host, which keeps the file where the
+        // program can be seen to have written it: under Node, beneath the
+        // working directory; in a page, to the page. The path is relative to
+        // the root, and the content is the whole file, base64 encoded, each
+        // time it changes.
+        @intrinsic("host.file_written")
+        _file_written(path: string, content: string) static
 
         remove(full_path: string) -> bool static => _files.remove(full_path)
 
@@ -276,6 +287,32 @@ namespace IO is
             od
 
             return result
+        si
+    si
+
+    // Bytes as standard base64 with padding.
+    class _BASE64 is
+        encode(bytes: ubyte[]) -> string static is
+            let alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+            let chars = Ghul._array_new[char]((bytes.count + 2) / 3 * 4)
+            let i mut = 0
+            let o mut = 0
+
+            while i < bytes.count do
+                let b0 = int(bytes[i])
+                let b1 = if i + 1 < bytes.count then int(bytes[i + 1]) else 0 fi
+                let b2 = if i + 2 < bytes.count then int(bytes[i + 2]) else 0 fi
+
+                Ghul._array_set(chars, o, alphabet[b0 >> 2])
+                Ghul._array_set(chars, o + 1, alphabet[((b0 & 3) << 4) | (b1 >> 4)])
+                Ghul._array_set(chars, o + 2, if i + 1 < bytes.count then alphabet[((b1 & 15) << 2) | (b2 >> 6)] else '=' fi)
+                Ghul._array_set(chars, o + 3, if i + 2 < bytes.count then alphabet[b2 & 63] else '=' fi)
+
+                i = i + 3
+                o = o + 4
+            od
+
+            return string(chars)
         si
     si
 
