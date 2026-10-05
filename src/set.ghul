@@ -38,6 +38,93 @@ namespace Collections is
         /// - value: the element to look for
         contains(value: T) -> bool => _map.contains_key(value);
 
+        /// Adds every element of `other` the set does not already hold.
+        ///
+        /// - other: the elements to add
+        union_with(other: Iterable[T]) is
+            for value in other do
+                add(value);
+            od
+        si
+
+        /// Keeps only the elements `other` also holds.
+        ///
+        /// - other: the elements to keep
+        intersect_with(other: Iterable[T]) is
+            let keep = SET[T](other);
+            let dropped = LIST[T]();
+
+            for value in self do
+                if !keep.contains(value) then
+                    dropped.add(value);
+                fi
+            od
+
+            for value in dropped do
+                remove(value);
+            od
+        si
+
+        /// Removes every element `other` holds.
+        ///
+        /// - other: the elements to remove
+        except_with(other: Iterable[T]) is
+            for value in other do
+                remove(value);
+            od
+        si
+
+        /// Whether `other` holds every element of this set.
+        ///
+        /// - other: the elements to compare with
+        is_subset_of(other: Iterable[T]) -> bool is
+            let them = SET[T](other);
+
+            for value in self do
+                if !them.contains(value) then
+                    return false;
+                fi
+            od
+
+            return true;
+        si
+
+        /// Whether this set holds every element of `other`.
+        ///
+        /// - other: the elements to compare with
+        is_superset_of(other: Iterable[T]) -> bool is
+            for value in other do
+                if !contains(value) then
+                    return false;
+                fi
+            od
+
+            return true;
+        si
+
+        /// Whether this set and `other` hold the same elements, in any order
+        /// and however many times `other` repeats one.
+        ///
+        /// - other: the elements to compare with
+        set_equals(other: Iterable[T]) -> bool is
+            let them = SET[T](other);
+
+            return them.count == count /\ is_subset_of(them);
+        si
+
+        /// Whether this set and `other` hold any element in common.
+        ///
+        /// - other: the elements to compare with
+        overlaps(other: Iterable[T]) -> bool is
+            for value in other do
+                if contains(value) then
+                    return true;
+                fi
+            od
+
+            return false;
+        si
+
         /// Removes every element.
         clear() is
             _map.clear();

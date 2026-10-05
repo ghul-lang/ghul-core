@@ -10,6 +10,12 @@ namespace Collections is
         /// The value the key maps to.
         value: V pure => _value
 
+        /// The key, read first when the pair is destructured.
+        `0: K pure => _key
+
+        /// The value, read second when the pair is destructured.
+        `1: V pure => _value
+
         /// - key: the key
         /// - value: the value the key maps to
         init(key: K, value: V) pure is
