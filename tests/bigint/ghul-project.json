@@ -1,7 +1,6 @@
 {
     "name": "bigint",
     "targets": ["wasm"],
-    "compiler": "65.0.1",
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
     "dependencies": {
