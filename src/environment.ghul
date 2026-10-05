@@ -37,15 +37,20 @@ namespace Ghul is
             _instance = ENVIRONMENT()
         si
 
-        // The variables' names and values, at the same positions. Kept as two
-        // lists rather than a map, since an environment is small and a map
-        // of strings to strings cannot yet be compiled for the wasm target.
-        _names: LIST[string]
-        _values: LIST[string]
+        // The variables' names and values, at the same positions, the first
+        // _count of each array in use. The arrays are held as object, since
+        // the wasm target cannot yet lay out a field whose type a program
+        // that never uses ENVIRONMENT does not otherwise instantiate.
+        _name_store: object
+        _value_store: object
+        _count: int
+
+        _names: string[] => cast string[](_name_store)
+        _values: string[] => cast string[](_value_store)
 
         init() is
-            _names = LIST[string]()
-            _values = LIST[string]()
+            _name_store = Ghul._array_new[string](0)
+            _value_store = Ghul._array_new[string](0)
 
             let count = _environment_count()
             let i mut = 0
@@ -54,8 +59,7 @@ namespace Ghul is
                 let name = _environment_name(i)
 
                 if let value = _environment_lookup(name) then
-                    _names.add(name)
-                    _values.add(value)
+                    _add(name, value)
                 fi
 
                 i = i + 1
@@ -84,13 +88,12 @@ namespace Ghul is
             _get(key),
             = value is
                 if let present = value then
-                    let index = _names.index_of(key)
+                    let index = _index_of(key)
 
                     if index >= 0 then
-                        _values[index] = present
+                        Ghul._array_set(_values, index, present)
                     else
-                        _names.add(key)
-                        _values.add(present)
+                        _add(key, present)
                     fi
                 else
                     remove(key)
@@ -98,27 +101,34 @@ namespace Ghul is
             si
 
         /// Whether `key` is set.
-        contains_key(key: string) -> bool => _names.contains(key)
+        contains_key(key: string) -> bool => _index_of(key) >= 0
 
         /// Removes `key`, and returns whether it was set.
         remove(key: string) -> bool is
-            let index = _names.index_of(key)
+            let index = _index_of(key)
 
             if index < 0 then
                 return false
             fi
 
-            _names.remove_at(index)
-            _values.remove_at(index)
+            let i mut = index
+
+            while i < _count - 1 do
+                Ghul._array_set(_names, i, _names[i + 1])
+                Ghul._array_set(_values, i, _values[i + 1])
+                i = i + 1
+            od
+
+            _count = _count - 1
 
             return true
         si
 
         /// The keys set.
-        keys: Iterable[string] => _names.to_array()
+        keys: Iterable[string] => _copy(_names)
 
         /// The values of the keys set.
-        values: Iterable[string] => _values.to_array()
+        values: Iterable[string] => _copy(_values)
 
         /// A snapshot of every key and value.
         to_map() -> Map[string, string] => MAP[string, string](_pairs())
@@ -130,7 +140,7 @@ namespace Ghul is
             let result = LIST[KEY_VALUE_PAIR[string, string]]()
             let i mut = 0
 
-            while i < _names.count do
+            while i < _count do
                 result.add(KEY_VALUE_PAIR[string, string](_names[i], _values[i]))
                 i = i + 1
             od
@@ -138,8 +148,59 @@ namespace Ghul is
             return result
         si
 
+        _add(name: string, value: string) is
+            if _count == _names.count then
+                let capacity = if _count == 0 then 4 else _count * 2 fi
+
+                _name_store = _grow(_names, capacity)
+                _value_store = _grow(_values, capacity)
+            fi
+
+            Ghul._array_set(_names, _count, name)
+            Ghul._array_set(_values, _count, value)
+            _count = _count + 1
+        si
+
+        _index_of(key: string) -> int is
+            let i mut = 0
+
+            while i < _count do
+                if _names[i] =~ key then
+                    return i
+                fi
+
+                i = i + 1
+            od
+
+            return -1
+        si
+
+        _grow(items: string[], capacity: int) -> string[] is
+            let result = Ghul._array_new[string](capacity)
+            let i mut = 0
+
+            while i < _count do
+                Ghul._array_set(result, i, items[i])
+                i = i + 1
+            od
+
+            return result
+        si
+
+        _copy(items: string[]) -> string[] is
+            let result = Ghul._array_new[string](_count)
+            let i mut = 0
+
+            while i < _count do
+                Ghul._array_set(result, i, items[i])
+                i = i + 1
+            od
+
+            return result
+        si
+
         _get(key: string) -> string? is
-            let index = _names.index_of(key)
+            let index = _index_of(key)
 
             if index >= 0 then
                 return _values[index]

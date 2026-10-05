@@ -57,6 +57,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   wasm target, each with the constructor it uses
 - `tests/display` — `$`, `inspect` and interpolation over records, union
   variants, tuples, sequences and a `Displayable`, as .NET writes them
+- `tests/environment` — a program reading, writing and removing variables
+  through its `Ghul.Environment`
 
 Each test directory is a ghul-cli project whose `ghul-project.json` takes
 ghul-core from this checkout (`"path": "../.."`), so the program compiles
