@@ -7,13 +7,15 @@ namespace Ghul.Internal is
         /// - chars: the code units
         @intrinsic("constructor.from_chars")
         from_chars(chars: char[]) -> string static pure is
-            let result = Text.STRING_BUILDER()
+            let units = Ghul._array_new[string](chars.count)
+            let i mut = 0
 
-            for unit in chars do
-                result.append(unit)
+            while i < chars.count do
+                Ghul._array_set(units, i, _string_from_char(chars[i]))
+                i = i + 1
             od
 
-            return result.to_string()
+            return STRING_JOINER.join(units)
         si
 
         /// A string holding `count` copies of `unit`.
@@ -27,6 +29,57 @@ namespace Ghul.Internal is
             fi
 
             return Text.STRING_BUILDER().append(unit, count).to_string()
+        si
+    si
+
+    /// Joins strings end to end without copying the same characters over and
+    /// over.
+    class STRING_JOINER is
+        /// The strings of `parts` joined end to end, in order.
+        ///
+        /// - parts: the strings to join
+        join(parts: Collections.LIST[string]) -> string static is
+            let pieces = Ghul._array_new[string](parts.count)
+            let i mut = 0
+
+            while i < parts.count do
+                Ghul._array_set(pieces, i, parts[i])
+                i = i + 1
+            od
+
+            return join(pieces)
+        si
+
+        /// The strings of `parts` joined end to end, in order. `parts` is used
+        /// as working space and is not left as it was.
+        ///
+        /// - parts: the strings to join
+        join(parts: string[]) -> string static is
+            let count mut = parts.count
+
+            if count == 0 then
+                return ""
+            fi
+
+            while count > 1 do
+                let from mut = 0
+                let to mut = 0
+
+                while from + 1 < count do
+                    Ghul._array_set(parts, to, _string_concat(parts[from], parts[from + 1]))
+                    from = from + 2
+                    to = to + 1
+                od
+
+                if from < count then
+                    Ghul._array_set(parts, to, parts[from])
+                    to = to + 1
+                fi
+
+                count = to
+            od
+
+            return parts[0]
         si
     si
 si
