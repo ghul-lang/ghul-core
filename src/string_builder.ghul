@@ -1,7 +1,16 @@
 namespace Text is
     /// Accumulates text a piece at a time, as an interpolated string does.
     class STRING_BUILDER is
+        // What has been built is `_chunks` in order, then `_text`. Text is
+        // joined onto `_text` while that stays short, so a builder made of a
+        // few pieces never allocates a list; a longer piece, or a `_text` that
+        // would grow past the limit, is moved to `_chunks` instead, so that
+        // appending costs the same however much has been built. `to_string`
+        // joins the chunks once, pairwise, rather than copying what is built
+        // for every append.
         _text: string?
+        _chunks: Collections.LIST[string]?
+        _length: int
 
         init() is si
 
@@ -9,7 +18,25 @@ namespace Text is
         ///
         /// - text: the text to append
         append(text: string) -> STRING_BUILDER is
-            _text = _string_concat(_text, text)
+            let tail_length = if let tail = _text then tail.length else 0 fi
+
+            if tail_length + text.length <= _TAIL_LIMIT then
+                _text = _string_concat(_text, text)
+            else
+                if !_chunks? then
+                    _chunks = Collections.LIST[string]()
+                fi
+
+                if _text? then
+                    _chunks.add(_text)
+                fi
+
+                _chunks.add(text)
+                _text = null
+            fi
+
+            _length = _length + text.length
+
             return self
         si
 
@@ -70,7 +97,7 @@ namespace Text is
         append_line(text: string) -> STRING_BUILDER => append(text).append("\n")
 
         /// The number of code units built so far.
-        length: int => if let text = _text then text.length else 0 fi
+        length: int => _length
 
         /// The code unit at `index`, which can be replaced.
         ///
@@ -83,12 +110,14 @@ namespace Text is
                     throw Ghul.ArgumentOutOfRangeException("index");
                 fi
 
-                _text = _string_concat(_string_concat(text.substring(0, index), _string_from_char(value)), text.substring(index + 1));
+                _replace(_string_concat(_string_concat(text.substring(0, index), _string_from_char(value)), text.substring(index + 1)))
             si
 
         /// Removes everything built so far, and returns this builder.
         clear() -> STRING_BUILDER is
             _text = null
+            _chunks = null
+            _length = 0
             return self
         si
 
@@ -99,7 +128,7 @@ namespace Text is
         insert(index: int, value: string) -> STRING_BUILDER is
             let text = to_string()
 
-            _text = _string_concat(_string_concat(text.substring(0, index), value), text.substring(index))
+            _replace(_string_concat(_string_concat(text.substring(0, index), value), text.substring(index)))
             return self
         si
 
@@ -116,7 +145,7 @@ namespace Text is
         remove(start: int, count: int) -> STRING_BUILDER is
             let text = to_string()
 
-            _text = _string_concat(text.substring(0, start), text.substring(start + count))
+            _replace(_string_concat(text.substring(0, start), text.substring(start + count)))
             return self
         si
 
@@ -143,6 +172,26 @@ namespace Text is
         si
 
         /// The text built so far.
-        to_string() -> string => _string_concat(_text, "")
+        to_string() -> string is
+            if _chunks? then
+                if _text? then
+                    _chunks.add(_text)
+                fi
+
+                _text = Ghul.Internal.STRING_JOINER.join(_chunks)
+                _chunks = null
+            fi
+
+            return _string_concat(_text, "")
+        si
+
+        _TAIL_LIMIT: int static => 128
+
+        // Makes `text` all there is.
+        _replace(text: string) is
+            _text = text
+            _chunks = null
+            _length = text.length
+        si
     si
 si

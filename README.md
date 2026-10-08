@@ -64,6 +64,9 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/bigint_conversions` — `cast` between bigint and the scalars, bigint under
   numeric formats and reached as `object`, and division by zero, against
   .NET's text
+- `tests/string-builder-large` — a builder and a string built from characters
+  holding hundreds of thousands of code units, which must stay cheap to build and
+  edit
 - `tests/string_members` — the string members: search, trim, split, replace,
   padding, casing and comparison
 - `tests/string_hash` — strings that are `=~` hash alike, and a union with a
