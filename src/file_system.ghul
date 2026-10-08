@@ -1,11 +1,12 @@
 namespace IO is
     // The wasm target reads no host file system. Files and directories live
-    // in memory for as long as the program runs: it starts with only the
-    // root directory, which is also the current directory, and sees exactly
-    // what it has written. Every write is also handed to the host, which
-    // keeps the file beneath its own working directory. Each member answers
-    // as .NET's does over a file system holding the same files, with the
-    // same exceptions where a path is missing. Path works on strings alone.
+    // in memory for as long as the program runs: it starts with the root
+    // directory, which is also the current directory, and the files the host
+    // supplied, and sees those and what it has written. Every write is also
+    // handed to the host, which keeps the file beneath its own working
+    // directory. Each member answers as .NET's does over a file system
+    // holding the same files, with the same exceptions where a path is
+    // missing. Path works on strings alone.
 
     /// Thrown when reading or writing a file or directory fails.
     class IOException: Ghul.Exception is
@@ -49,6 +50,39 @@ namespace IO is
             _files = Collections.MAP[string, ubyte[]]()
             _directories = Collections.SET[string]()
             _current = "/"
+
+            let count = _input_file_count()
+            let i mut = 0
+
+            while i < count do
+                _files[full(_input_file_path(i))] = _bytes_of(_input_file_content(i))
+                i = i + 1
+            od
+        si
+
+        // How many files the host starts the program with.
+        @intrinsic("host.input_file_count")
+        _input_file_count() -> int static
+
+        // The path of the host's file at `index`, as the host names it.
+        @intrinsic("host.input_file_path")
+        _input_file_path(index: int) -> string static
+
+        // The content of the host's file at `index`: one code unit for each
+        // byte, none above 255.
+        @intrinsic("host.input_file_content")
+        _input_file_content(index: int) -> string static
+
+        _bytes_of(text: string) -> ubyte[] static is
+            let bytes = Ghul._array_new[ubyte](text.length)
+            let i mut = 0
+
+            while i < text.length do
+                Ghul._array_set(bytes, i, ubyte(int(text[i])))
+                i = i + 1
+            od
+
+            return bytes
         si
 
         current: string static => _current
