@@ -38,6 +38,39 @@ namespace Ghul is
         si
     si
 
+    partial uint is
+        /// The `uint` that `text` holds; throws where it holds none, or one
+        /// outside `uint`'s range.
+        ///
+        /// - text: the text to parse
+        parse(text: string) -> uint static is
+            let (status, value) = _parse_integer(text, 0L, 4294967295L)
+
+            _throw_unless_parsed(status)
+
+            return cast uint(value)
+        si
+
+        /// Whether `text` holds a `uint`, writing it to `result` where it does
+        /// and zero where it does not.
+        ///
+        /// - text: the text to parse
+        /// - result: where the value is written
+        try_parse(text: string?, result: uint ref) -> bool static is
+            if text? then
+                let (status, value) = _parse_integer(text, 0L, 4294967295L)
+
+                if status == 0 then
+                    result! = cast uint(value)
+                    return true
+                fi
+            fi
+
+            result! = 0u
+            return false
+        si
+    si
+
     partial long is
         /// The `long` that `text` holds; throws where it holds none, or one
         /// outside `long`'s range.
@@ -145,6 +178,13 @@ namespace Ghul is
             fi
 
             value = value * 10L - digit
+
+            // The check above divides towards zero, which lets one digit past
+            // a limit of zero through.
+            if value < limit then
+                return (2, 0L)
+            fi
+
             i = i + 1
         od
 

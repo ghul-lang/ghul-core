@@ -5,6 +5,22 @@ namespace Ghul is
         /// The ratio of a circle's circumference to its diameter.
         pi: double static => 3.141592653589793
 
+        /// The quotient of `left` by `right`, truncated towards zero, and the
+        /// remainder, with the sign of `left`.
+        ///
+        /// - left: the value divided
+        /// - right: the value divided by
+        div_rem(left: int, right: int) -> (quotient: int, remainder: int) static pure =>
+            (left / right, left % right)
+
+        /// The quotient of `left` by `right`, truncated towards zero, and the
+        /// remainder, with the sign of `left`.
+        ///
+        /// - left: the value divided
+        /// - right: the value divided by
+        div_rem(left: long, right: long) -> (quotient: long, remainder: long) static pure =>
+            (left / right, left % right)
+
         /// The ratio of a circle's circumference to its radius, two pi.
         tau: double static => 6.283185307179586
 

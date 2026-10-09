@@ -67,8 +67,11 @@ namespace IO is
     si
 
     /// Reads text from a stream, a line or a character at a time.
-    class TextReader abstract is
+    class TextReader: Ghul.Disposable abstract is
         init() is si
+
+        /// Releases the reader.
+        dispose() is si
 
         /// Reads the next line, without its line break, or null at the end
         /// of the text. A line ends at a line feed, a carriage return, or a
@@ -108,8 +111,11 @@ namespace IO is
     si
 
     /// Writes text to a stream, a line or a piece at a time.
-    class TextWriter abstract is
+    class TextWriter: Ghul.Disposable abstract is
         init() is si
+
+        /// Releases the writer.
+        dispose() is si
 
         /// Writes `text`.
         ///

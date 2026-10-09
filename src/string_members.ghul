@@ -2,6 +2,34 @@ namespace Ghul is
     use Text.STRING_BUILDER
 
     partial string is
+        /// The strings of `values` joined end to end, in order.
+        ///
+        /// - values: the strings to join
+        concat(values: string[]) -> string static is
+            let parts = Ghul._array_new[string](values.count)
+            let i mut = 0
+
+            while i < values.count do
+                Ghul._array_set(parts, i, values[i] ?? "")
+                i = i + 1
+            od
+
+            return Ghul.Internal.STRING_JOINER.join(parts)
+        si
+
+        /// `a` followed by `b`.
+        ///
+        /// - a: the first string
+        /// - b: the second string
+        concat(a: string?, b: string?) -> string static => _string_concat(a, b)
+
+        /// `a`, `b` and `c` end to end.
+        ///
+        /// - a: the first string
+        /// - b: the second string
+        /// - c: the third string
+        concat(a: string?, b: string?, c: string?) -> string static => _string_concat(_string_concat(a, b), c)
+
         /// The code units from `start` to the end.
         ///
         /// - start: the position of the first code unit, from 0
