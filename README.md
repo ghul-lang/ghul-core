@@ -92,6 +92,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/dotnet-members` — the numeric types' ranges and floating-point special
   values, ASCII and surrogate classification, `string.concat`, a builder made
   from a string, `uint.parse` and `Math.div_rem`, against .NET's output
+- `tests/async-surface` — the state machine, awaiter and exception types an
+  asynchronous function's lowering uses, driven by hand, and the interval clock
 - `tests/disposable` — `use` over a class of the program's own, an iterator and
   a reader, disposing in reverse order and when an exception leaves the block
 
