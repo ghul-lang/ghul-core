@@ -3,7 +3,7 @@ namespace Collections is
     // current reads the element reached, and the iterator property of
     // an iterable hands one out. All three are covariant, as their
     // .NET counterparts are, so Iterable[CAT] is an Iterable[Animal].
-    trait Iterator[E: out] is
+    trait Iterator[E: out]: Ghul.Disposable is
         move_next() -> bool;
         current: E;
         dispose();

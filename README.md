@@ -87,6 +87,11 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   through its `Ghul.Environment`
 - `tests/arguments` — a program reading the command-line arguments it was
   run with
+- `tests/dotnet-members` — the numeric types' ranges and floating-point special
+  values, ASCII and surrogate classification, `string.concat`, a builder made
+  from a string, `uint.parse` and `Math.div_rem`, against .NET's output
+- `tests/disposable` — `use` over a class of the program's own, an iterator and
+  a reader, disposing in reverse order and when an exception leaves the block
 
 Each test directory is a ghul-cli project whose `ghul-project.json` takes
 ghul-core from this checkout (`"path": "../.."`), so the program compiles

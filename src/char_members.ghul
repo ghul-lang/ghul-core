@@ -70,6 +70,126 @@ namespace Ghul is
         ///
         /// - c: the character to convert
         to_lower_invariant(c: char) -> char static pure => to_lower(c)
+
+        /// Whether `c` is in the ASCII range, U+0000 to U+007F.
+        ///
+        /// - c: the character to test
+        is_ascii(c: char) -> bool static pure => cast int(c) <= 0x7F
+
+        /// Whether `c` is an ASCII decimal digit, `0` to `9`.
+        ///
+        /// - c: the character to test
+        is_ascii_digit(c: char) -> bool static pure => c >= '0' /\ c <= '9'
+
+        /// Whether `c` is an ASCII hexadecimal digit: `0` to `9`, `a` to `f`
+        /// or `A` to `F`.
+        ///
+        /// - c: the character to test
+        is_ascii_hex_digit(c: char) -> bool static pure =>
+            is_ascii_digit(c) \/ (c >= 'a' /\ c <= 'f') \/ (c >= 'A' /\ c <= 'F')
+
+        /// Whether `c` is an ASCII lower-case letter, `a` to `z`.
+        ///
+        /// - c: the character to test
+        is_ascii_letter_lower(c: char) -> bool static pure => c >= 'a' /\ c <= 'z'
+
+        /// Whether `c` is an ASCII upper-case letter, `A` to `Z`.
+        ///
+        /// - c: the character to test
+        is_ascii_letter_upper(c: char) -> bool static pure => c >= 'A' /\ c <= 'Z'
+
+        /// Whether `c` is an ASCII letter.
+        ///
+        /// - c: the character to test
+        is_ascii_letter(c: char) -> bool static pure => is_ascii_letter_lower(c) \/ is_ascii_letter_upper(c)
+
+        /// Whether `c` is an ASCII letter or decimal digit.
+        ///
+        /// - c: the character to test
+        is_ascii_letter_or_digit(c: char) -> bool static pure => is_ascii_letter(c) \/ is_ascii_digit(c)
+
+        /// Whether `c` is a high surrogate, U+D800 to U+DBFF.
+        ///
+        /// - c: the character to test
+        is_high_surrogate(c: char) -> bool static pure => cast int(c) >= 0xD800 /\ cast int(c) <= 0xDBFF
+
+        /// Whether `c` is a low surrogate, U+DC00 to U+DFFF.
+        ///
+        /// - c: the character to test
+        is_low_surrogate(c: char) -> bool static pure => cast int(c) >= 0xDC00 /\ cast int(c) <= 0xDFFF
+
+        /// Whether `c` is a high or a low surrogate.
+        ///
+        /// - c: the character to test
+        is_surrogate(c: char) -> bool static pure => cast int(c) >= 0xD800 /\ cast int(c) <= 0xDFFF
+
+        /// Whether `high` and `low` are a high surrogate followed by a low one.
+        ///
+        /// - high: the first character
+        /// - low: the second character
+        is_surrogate_pair(high: char, low: char) -> bool static pure => is_high_surrogate(high) /\ is_low_surrogate(low)
+
+        /// The text of the code point `utf32`: one character, or a surrogate
+        /// pair above U+FFFF. Throws `ArgumentOutOfRangeException` where it is
+        /// not a code point or is a surrogate.
+        ///
+        /// - utf32: the code point
+        convert_from_utf32(utf32: int) -> string static is
+            if utf32 < 0 \/ utf32 > 0x10FFFF \/ (utf32 >= 0xD800 /\ utf32 <= 0xDFFF) then
+                throw ArgumentOutOfRangeException("utf32", "A valid UTF32 value is between 0x000000 and 0x10ffff, inclusive, and should not include surrogate codepoint values (0x00d800 ~ 0x00dfff).")
+            fi
+
+            if utf32 < 0x10000 then
+                return _string_from_char(cast char(utf32))
+            fi
+
+            let offset = utf32 - 0x10000
+
+            return _string_concat(
+                _string_from_char(cast char(0xD800 + (offset >> 10))),
+                _string_from_char(cast char(0xDC00 + (offset & 0x3FF))))
+        si
+
+        /// The code point the surrogate pair `high` and `low` stand for.
+        /// Throws `ArgumentOutOfRangeException` where they are not a pair.
+        ///
+        /// - high: the high surrogate
+        /// - low: the low surrogate
+        convert_to_utf32(high: char, low: char) -> int static is
+            if !is_high_surrogate(high) then
+                throw ArgumentOutOfRangeException("highSurrogate", "A valid high surrogate character is between 0xd800 and 0xdbff, inclusive.")
+            fi
+
+            if !is_low_surrogate(low) then
+                throw ArgumentOutOfRangeException("lowSurrogate", "A valid low surrogate character is between 0xdc00 and 0xdfff, inclusive.")
+            fi
+
+            return ((cast int(high) - 0xD800) << 10) + (cast int(low) - 0xDC00) + 0x10000
+        si
+
+        /// The code point at `index` in `text`, which is the pair starting
+        /// there where one does. Throws `ArgumentException` where `index` is at
+        /// a surrogate that is not part of a pair.
+        ///
+        /// - text: the text
+        /// - index: where the code point starts
+        convert_to_utf32(text: string, index: int) -> int static is
+            if index < 0 \/ index >= text.length then
+                throw ArgumentOutOfRangeException("index", "Index was out of range. Must be non-negative and less than the size of the collection.")
+            fi
+
+            let unit = text[index]
+
+            if !is_surrogate(unit) then
+                return cast int(unit)
+            fi
+
+            if is_high_surrogate(unit) /\ index + 1 < text.length /\ is_low_surrogate(text[index + 1]) then
+                return convert_to_utf32(unit, text[index + 1])
+            fi
+
+            throw ArgumentException("Found a high surrogate char without a following low surrogate at index: {index}. The input may not be in this encoding, or may not contain valid Unicode (UTF-16) characters.")
+        si
     si
 
     // The upper-case code point of `code`, or `code` itself where it has none.

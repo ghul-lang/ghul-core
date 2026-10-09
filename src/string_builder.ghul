@@ -14,6 +14,19 @@ namespace Text is
 
         init() is si
 
+        /// A builder holding `value` to start with.
+        ///
+        /// - value: the text to start with
+        init(value: string) is
+            append(value)
+        si
+
+        /// A builder with room for `capacity` characters. The capacity is a
+        /// hint, which the builder does not need.
+        ///
+        /// - capacity: the number of characters to make room for
+        init(capacity: int) is si
+
         /// Appends `text` to the text built so far, and returns this builder.
         ///
         /// - text: the text to append
