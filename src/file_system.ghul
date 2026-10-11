@@ -393,6 +393,9 @@ namespace IO is
         si
 
         // Deletes the file at `full_path`, answering whether there was one.
+        // The host answers 0 for a file that is not there, as .NET's
+        // File.Delete does nothing for one, and fails only where the
+        // directory it would be in is not there either.
         remove(full_path: string) -> bool static is
             let was_there = is_file(full_path)
 
