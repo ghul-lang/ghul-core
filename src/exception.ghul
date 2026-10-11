@@ -119,7 +119,7 @@ namespace Ghul is
     /// type.
     class OverflowException: ArithmeticException is
         init() is
-            super.init("the result does not fit its type");
+            super.init("Arithmetic operation resulted in an overflow.");
         si
 
         /// - message: what overflowed
@@ -131,7 +131,7 @@ namespace Ghul is
     /// Thrown by an integer division or remainder whose divisor is zero.
     class DivideByZeroException: ArithmeticException is
         init() is
-            super.init("attempted to divide by zero");
+            super.init("Attempted to divide by zero.");
         si
 
         /// - message: what was divided
