@@ -113,6 +113,10 @@ the member's own body and holds overrides to nothing, the member is marked
   from a string, `uint.parse` and `Math.div_rem`, against .NET's output
 - `tests/async-surface` — the state machine, awaiter and exception types an
   asynchronous function's lowering uses, driven by hand, and the interval clock
+- `tests/tasks` — asynchronous functions returning `Tasks.TASK` and
+  `Tasks.TASK[T]`, awaits on yields, delays and other tasks, a `TASK[int]`
+  awaited through a `TASK`, failures through `await` and through `result`,
+  and the task combinators
 - `tests/disposable` — `use` over a class of the program's own, an iterator and
   a reader, disposing in reverse order and when an exception leaves the block
 
@@ -124,6 +128,27 @@ compiler should say and what the program prints. A test that builds runs
 under Node; `tests/float_text_dotnet` builds for .NET. Where the wasm
 target cannot yet compile what a test exercises, its expectation is the
 diagnostic that says so, and a comment in the test names what it waits for.
+
+## Tasks
+
+`Tasks.TASK` and `Tasks.TASK[T]` are the task model of the targets with no
+.NET base class library. `TASK[T]` extends `TASK`, as .NET's `Task<TResult>`
+extends `Task`, and hides its awaiter so that awaiting a `TASK[T]` gives its
+result. Awaiting it as a `TASK` gives nothing.
+
+There is one thread, so nothing runs concurrently. A continuation is queued
+when what it waits for completes, and the queue runs only when something
+waits, through `result` or `wait`. Waiting runs queued work, and completes
+`delay`s as the host's monotonic clock reaches them, until the task
+completes. A wait nothing can satisfy, with no work queued and no delay
+pending, throws `Ghul.InvalidOperationException` rather than hanging. A
+task that threw throws `Ghul.AggregateException` holding the exception from
+`result` and `wait`, and the exception itself from `await`, as on .NET.
+
+The library declares what the compiler's lowering of an asynchronous function
+and the common task members need: `completed_task`, `from_result`,
+`from_exception`, `delay`, `yield`, `run`, `when_all`, `continue_with`,
+`configure_await` and `TaskExtensions.unwrap`.
 
 ## Testing
 
