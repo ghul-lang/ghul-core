@@ -38,10 +38,114 @@ namespace IO is
         ALL_DIRECTORIES
     si
 
+    // The files and directories: in memory where the target has no file
+    // system of its own to reach, and the real file system where it does.
+    // The class holds what the two share; each partial block below holds
+    // one way of keeping the files.
+    class _FILE_STORE is
+        // The full path `path` names, with no trailing separator except on
+        // the root.
+        full(path: string) -> string static =>
+            _trimmed(Path.get_full_path(path))
+
+        _trimmed(path: string) -> string static =>
+            if path.length > 1 /\ path.ends_with('/') then path.substring(0, path.length - 1) else path fi
+
+        // The directory holding `full_path`, which is itself a full path.
+        parent(full_path: string) -> string static is
+            let slash = full_path.last_index_of('/')
+
+            return if slash <= 0 then "/" else full_path.substring(0, slash) fi
+        si
+
+        _sorted(paths: Collections.Iterable[string]) -> Collections.LIST[string] static is
+            let result = Collections.LIST[string](paths)
+
+            result.sort((a: string, b: string) -> int => string.compare_ordinal(a, b))
+
+            return result
+        si
+
+        missing_part(full_path: string) -> DirectoryNotFoundException static =>
+            DirectoryNotFoundException("Could not find a part of the path '{full_path}'.")
+
+        // Whether `name` matches `pattern`, where `*` stands for any run of
+        // characters and `?` for any one. `*` and `*.*` match every name.
+        matches(name: string, pattern: string) -> bool static =>
+            pattern =~ "*" \/ pattern =~ "*.*" \/ _match(name, 0, pattern, 0)
+
+        _match(name: string, n: int, pattern: string, p: int) -> bool static is
+            if p == pattern.length then
+                return n == name.length
+            fi
+
+            let wanted = pattern[p]
+
+            if wanted == '*' then
+                let i mut = n
+
+                while i <= name.length do
+                    if _match(name, i, pattern, p + 1) then
+                        return true
+                    fi
+
+                    i = i + 1
+                od
+
+                return false
+            fi
+
+            if n == name.length then
+                return false
+            fi
+
+            if wanted == '?' \/ wanted == name[n] then
+                return _match(name, n + 1, pattern, p + 1)
+            fi
+
+            return false
+        si
+
+        // A copy of `count` bytes of `bytes` from `offset`, so that what the
+        // store holds and what a caller holds never alias.
+        copy(bytes: ubyte[], offset: int, count: int) -> ubyte[] static is
+            let result = Ghul._array_new[ubyte](count)
+            let i mut = 0
+
+            while i < count do
+                Ghul._array_set(result, i, bytes[offset + i])
+                i = i + 1
+            od
+
+            return result
+        si
+
+        concat(first: ubyte[], second: ubyte[]) -> ubyte[] static is
+            let result = Ghul._array_new[ubyte](first.count + second.count)
+            let i mut = 0
+
+            while i < first.count do
+                Ghul._array_set(result, i, first[i])
+                i = i + 1
+            od
+
+            let j mut = 0
+
+            while j < second.count do
+                Ghul._array_set(result, first.count + j, second[j])
+                j = j + 1
+            od
+
+            return result
+        si
+    si
+
+
     // The files and directories, keyed by full path. A directory exists
     // where it was created, or where a file or directory below it does; the
     // root always exists.
-    class _FILE_STORE is
+    @IF.not.llvm()
+    partial _FILE_STORE is
         _files: Collections.MAP[string, ubyte[]] static
         _directories: Collections.SET[string] static
         _current: string static
@@ -86,21 +190,6 @@ namespace IO is
         si
 
         current: string static => _current
-
-        // The full path `path` names, with no trailing separator except on
-        // the root.
-        full(path: string) -> string static =>
-            _trimmed(Path.get_full_path(path))
-
-        _trimmed(path: string) -> string static =>
-            if path.length > 1 /\ path.ends_with('/') then path.substring(0, path.length - 1) else path fi
-
-        // The directory holding `full_path`, which is itself a full path.
-        parent(full_path: string) -> string static is
-            let slash = full_path.last_index_of('/')
-
-            return if slash <= 0 then "/" else full_path.substring(0, slash) fi
-        si
 
         is_file(full_path: string) -> bool static => _files.contains_key(full_path)
 
@@ -217,6 +306,37 @@ namespace IO is
         forget_directory(full_path: string) static =>
             _directories.remove(full_path)
 
+        // Deletes the directory at `full_path` and everything below it.
+        delete_directory(full_path: string) static is
+            for file in files_under(full_path) do
+                remove(file)
+            od
+
+            for directory in directories_under(full_path) do
+                forget_directory(directory)
+            od
+
+            forget_directory(full_path)
+        si
+
+        // Moves the directory at `from`, and everything below it, to `to`,
+        // where nothing is.
+        move_directory(from: string, to: string) static is
+            create_directory(to)
+
+            for directory in directories_under(from) do
+                create_directory("{to}{directory.substring(from.length)}")
+                forget_directory(directory)
+            od
+
+            for file in files_under(from) do
+                write("{to}{file.substring(from.length)}", read(file))
+                remove(file)
+            od
+
+            forget_directory(from)
+        si
+
         set_current(path: string) static is
             let full_path = full(path)
 
@@ -242,86 +362,185 @@ namespace IO is
             return found
         si
 
-        _sorted(paths: Collections.Iterable[string]) -> Collections.LIST[string] static is
-            let result = Collections.LIST[string](paths)
+    si
 
-            result.sort((a: string, b: string) -> int => string.compare_ordinal(a, b))
+    // The files and directories of the real file system, through the native
+    // host's file operations, as a .NET program reads and writes them.
+    @IF.llvm()
+    partial _FILE_STORE is
+        current: string static => _current_directory()
 
-            return result
-        si
+        is_file(full_path: string) -> bool static => _kind(full_path) == 1
 
-        missing_part(full_path: string) -> DirectoryNotFoundException static =>
-            DirectoryNotFoundException("Could not find a part of the path '{full_path}'.")
+        is_directory(full_path: string) -> bool static => _kind(full_path) == 2
 
-        // Whether `name` matches `pattern`, where `*` stands for any run of
-        // characters and `?` for any one. `*` and `*.*` match every name.
-        matches(name: string, pattern: string) -> bool static =>
-            pattern =~ "*" \/ pattern =~ "*.*" \/ _match(name, 0, pattern, 0)
+        // The bytes of the file at `path`.
+        read(path: string) -> ubyte[] static is
+            let full_path = full(path)
 
-        _match(name: string, n: int, pattern: string, p: int) -> bool static is
-            if p == pattern.length then
-                return n == name.length
+            if let bytes = _read(full_path) then
+                return bytes
             fi
 
-            let wanted = pattern[p]
+            throw _failure(_last_error(), full_path)
+        si
 
-            if wanted == '*' then
-                let i mut = n
+        // Makes `bytes` the whole content of the file at `path`.
+        write(path: string, bytes: ubyte[]) static is
+            let full_path = full(path)
 
-                while i <= name.length do
-                    if _match(name, i, pattern, p + 1) then
-                        return true
-                    fi
+            _check(_write(full_path, bytes, false), full_path)
+        si
 
-                    i = i + 1
+        // Deletes the file at `full_path`, answering whether there was one.
+        remove(full_path: string) -> bool static is
+            let was_there = is_file(full_path)
+
+            _check(_delete(full_path), full_path)
+
+            return was_there
+        si
+
+        create_directory(full_path: string) static is
+            if is_file(full_path) then
+                throw IOException("The file '{full_path}' already exists.")
+            fi
+
+            _check(_create_directory(full_path), full_path)
+        si
+
+        // Deletes the directory at `full_path` and everything below it.
+        delete_directory(full_path: string) static =>
+            _check(_delete_directory(full_path, true), full_path)
+
+        // Moves the directory at `from`, and everything below it, to `to`,
+        // where nothing is.
+        move_directory(from: string, to: string) static =>
+            _check(_rename(from, to), from)
+
+        set_current(path: string) static is
+            let full_path = full(path)
+
+            if !is_directory(full_path) then
+                throw missing_part(full_path)
+            fi
+
+            _check(_set_current(full_path), full_path)
+        si
+
+        // Every file at or below `full_path`, by full path.
+        files_under(full_path: string) -> Collections.LIST[string] static is
+            let found = Collections.LIST[string]()
+
+            _walk(full_path, found, false)
+
+            return _sorted(found)
+        si
+
+        // Every directory below `full_path`, by full path.
+        directories_under(full_path: string) -> Collections.LIST[string] static is
+            let found = Collections.LIST[string]()
+
+            _walk(full_path, found, true)
+
+            return _sorted(found)
+        si
+
+        // Adds the files, or the directories, at every level below
+        // `directory` to `found`.
+        _walk(directory: string, found: Collections.LIST[string], directories: bool) static is
+            if directories then
+                for path in _listed(directory, true) do
+                    found.add(path)
+                    _walk(path, found, true)
                 od
+            else
+                found.add_range(_listed(directory, false))
 
-                return false
+                for path in _listed(directory, true) do
+                    _walk(path, found, false)
+                od
             fi
-
-            if n == name.length then
-                return false
-            fi
-
-            if wanted == '?' \/ wanted == name[n] then
-                return _match(name, n + 1, pattern, p + 1)
-            fi
-
-            return false
         si
 
-        // A copy of `count` bytes of `bytes` from `offset`, so that what the
-        // store holds and what a caller holds never alias.
-        copy(bytes: ubyte[], offset: int, count: int) -> ubyte[] static is
-            let result = Ghul._array_new[ubyte](count)
+        // The files, or the directories, directly in `directory`, by full
+        // path. The host answers one listing at a time, so it is read in
+        // full before anything else is listed.
+        _listed(directory: string, directories: bool) -> Collections.LIST[string] static is
+            let count = _entries(directory, directories)
+
+            if count < 0 then
+                throw _failure(-count, directory)
+            fi
+
+            let prefix = if directory =~ "/" then "/" else "{directory}/" fi
+            let paths = Collections.LIST[string]()
             let i mut = 0
 
             while i < count do
-                Ghul._array_set(result, i, bytes[offset + i])
+                paths.add("{prefix}{_entry(i)}")
                 i = i + 1
             od
 
-            return result
+            return paths
         si
 
-        concat(first: ubyte[], second: ubyte[]) -> ubyte[] static is
-            let result = Ghul._array_new[ubyte](first.count + second.count)
-            let i mut = 0
-
-            while i < first.count do
-                Ghul._array_set(result, i, first[i])
-                i = i + 1
-            od
-
-            let j mut = 0
-
-            while j < second.count do
-                Ghul._array_set(result, first.count + j, second[j])
-                j = j + 1
-            od
-
-            return result
+        _check(code: int, full_path: string) static is
+            if code != 0 then
+                throw _failure(code, full_path)
+            fi
         si
+
+        // The exception .NET throws for each of the host's failure codes.
+        _failure(code: int, full_path: string) -> Ghul.Exception static =>
+            case code
+            when 1 then FileNotFoundException("Could not find file '{full_path}'.")
+            when 2 then missing_part(full_path)
+            when 3 then Ghul.UnauthorizedAccessException("Access to the path '{full_path}' is denied.")
+            else IOException("An I/O error occurred with '{full_path}'.")
+            esac
+
+        @intrinsic("host.file_current_directory")
+        _current_directory() -> string static
+
+        // 0 for nothing there, 1 for a file, 2 for a directory.
+        @intrinsic("host.file_kind")
+        _kind(path: string) -> int static
+
+        // The whole file, or null with the reason in _last_error.
+        @intrinsic("host.file_read")
+        _read(path: string) -> ubyte[]? static
+
+        @intrinsic("host.file_last_error")
+        _last_error() -> int static
+
+        // Each of these answers 0, or one of the codes _failure turns into
+        // an exception.
+        @intrinsic("host.file_write")
+        _write(path: string, bytes: ubyte[], append: bool) -> int static
+
+        @intrinsic("host.file_delete")
+        _delete(path: string) -> int static
+
+        @intrinsic("host.file_rename")
+        _rename(from: string, to: string) -> int static
+
+        @intrinsic("host.directory_set_current")
+        _set_current(path: string) -> int static
+
+        @intrinsic("host.directory_create")
+        _create_directory(path: string) -> int static
+
+        @intrinsic("host.directory_delete")
+        _delete_directory(path: string, recursive: bool) -> int static
+
+        // How many files, or directories, are directly in `path`, or a
+        // failure code negated; each name is then _entry's to answer.
+        @intrinsic("host.directory_entries")
+        _entries(path: string, directories: bool) -> int static
+
+        @intrinsic("host.directory_entry")
+        _entry(index: int) -> string static
     si
 
     // Bytes as standard base64 with padding.
@@ -739,15 +958,7 @@ namespace IO is
                 throw IOException("Directory not empty : '{full_path}'")
             fi
 
-            for file in files do
-                _FILE_STORE.remove(file)
-            od
-
-            for directory in directories do
-                _FILE_STORE.forget_directory(directory)
-            od
-
-            _FILE_STORE.forget_directory(full_path)
+            _FILE_STORE.delete_directory(full_path)
         si
 
         /// Moves the directory at `source` to `destination`, which must not
@@ -767,19 +978,7 @@ namespace IO is
                 throw IOException("Cannot create '{to}' because a file or directory with the same name already exists.")
             fi
 
-            _FILE_STORE.create_directory(to)
-
-            for directory in _FILE_STORE.directories_under(from) do
-                _FILE_STORE.create_directory("{to}{directory.substring(from.length)}")
-                _FILE_STORE.forget_directory(directory)
-            od
-
-            for file in _FILE_STORE.files_under(from) do
-                _FILE_STORE.write("{to}{file.substring(from.length)}", _FILE_STORE.read(file))
-                _FILE_STORE.remove(file)
-            od
-
-            _FILE_STORE.forget_directory(from)
+            _FILE_STORE.move_directory(from, to)
         si
 
         /// The paths of the files in the directory at `path`.
