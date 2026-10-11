@@ -20,6 +20,13 @@ iterates an array and throws an exception to pass every front-end pass
 under `--target wasm`. Real bodies arrive tier by tier, as the backend
 gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang/ghul/issues/3224)).
 
+## Purity
+
+A member mirroring a .NET member the compiler trusts as store-free is declared `pure`, so a
+narrowed value survives a call to it on every target as it does on .NET. Where .NET trusts only
+the member's own body and holds overrides to nothing, the member is marked
+`@trusted_store_free()` instead.
+
 ## Layout
 
 - `ghul-project.json` — the library manifest (#3212 shape): name, targets,
@@ -68,6 +75,9 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   message
 - `tests/pure-lookups` — a field narrowed by a presence test stays narrowed across
   `contains`, `index_of` and `contains_key`
+- `tests/pure-strings`, `tests/pure-paths`, `tests/pure-object`, `tests/pure-collections` and
+  `tests/pure-writers` — the same, across splitting and trimming, path resolution, `get_type`, the
+  collection reads and the console writes
 - `tests/bigint` — bigint's operators and members, each a host operation on the
   host's BigInt, against the text .NET prints for the same program
 - `tests/bigint_conversions` — `cast` between bigint and the scalars, bigint under
