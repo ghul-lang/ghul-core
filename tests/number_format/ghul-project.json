@@ -1,6 +1,6 @@
 {
     "name": "number-format",
-    "targets": ["wasm"],
+    "targets": ["wasm", "llvm"],
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
     "dependencies": {

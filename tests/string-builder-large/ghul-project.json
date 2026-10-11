@@ -1,6 +1,6 @@
 {
     "name": "string-builder-large",
-    "targets": ["wasm"],
+    "targets": ["wasm", "llvm"],
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
     "dependencies": {

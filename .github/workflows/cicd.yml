@@ -74,10 +74,32 @@ jobs:
         node-version: '24'
 
     - name: Run tests
-      run: dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" tests
+      run: dotnet ghul-test tests
+
+  # The same tests built for the llvm target and run as native executables.
+  # ghul-cli fetches the ghul-llvm release pinned for the compiler, as a
+  # user's build does; a test that does not pass on llvm yet leaves the
+  # target out of its manifest, with a comment saying why.
+  llvm-test:
+    name: Test on llvm
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/dotnet/sdk:10.0-noble
+
+    timeout-minutes: 15
+    needs: [version]
+
+    steps:
+    - uses: actions/checkout@v6
+
+    - name: Restore local .NET tools
+      run: dotnet tool restore
+
+    - name: Run tests on llvm
+      run: dotnet ghul-test --config llvm tests
 
   create-release:
-    needs: [version, test]
+    needs: [version, test, llvm-test]
     name: Create release
     runs-on: ubuntu-latest
 
