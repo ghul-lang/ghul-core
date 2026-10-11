@@ -29,18 +29,6 @@ namespace IO is
         /// The writer for standard error.
         error: TextWriter static => _error
 
-        /// The encoding standard input is read in, which is always UTF-8.
-        /// Setting it is accepted and changes nothing.
-        input_encoding: System.Text.Encoding static public =>
-            System.Text.Encoding.utf8,
-            = value is si
-
-        /// The encoding standard output is written in, which is always
-        /// UTF-8. Setting it is accepted and changes nothing.
-        output_encoding: System.Text.Encoding static public =>
-            System.Text.Encoding.utf8,
-            = value is si
-
         /// Writes a line break to standard output.
         write_line() static =>
             _write("\n", 1)

@@ -3,9 +3,6 @@ use IO.Std.write_line
 // UTF-8 text, a string writer, an auto-flushing file writer and a moving
 // file that replaces another behave as they do on .NET.
 entry() is
-    IO.Std.input_encoding = System.Text.UTF8Encoding(false)
-    IO.Std.output_encoding = System.Text.UTF8Encoding(false)
-
     let bytes = System.Text.Encoding.utf8.get_bytes("héllo ☃")
 
     write_line("{bytes.count} {System.Text.UTF8Encoding().get_string(bytes)}")
