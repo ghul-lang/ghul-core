@@ -1,0 +1,26 @@
+// bigint at the edges of the i64 its value is held in while it fits: every
+// operator on pairs of values either side of 2^31, 2^62 and 2^63, of both
+// signs, so that each result lands in the i64, on the host, or crosses
+// between them. The expected text is what .NET prints for the same program.
+let values = [
+    0n, 1n, -1n, 7n, -7n,
+    2147483647n, 2147483648n, -2147483648n, -2147483649n,
+    4611686018427387904n, -4611686018427387904n,
+    9223372036854775807n, -9223372036854775808n,
+    9223372036854775808n, -9223372036854775809n,
+    18446744073709551616n, -18446744073709551616n,
+    12157665459056928801n
+]
+
+for a in values do
+    IO.Std.write_line("{a}: {-a} {\a} {a << 1} {a << 40} {a << -3} {a >> 1} {a >> 70} {a >> -2}")
+    IO.Std.write_line("  bits {a.get_bit_length()} sign {a.sign} zero {a.is_zero} one {a.is_one} even {a.is_even} abs {bigint.abs(a)}")
+    IO.Std.write_line("  hash {a.get_hash_code() == bigint.parse("{a}").get_hash_code()} pow {bigint.pow(a, 3)}")
+    IO.Std.write_line("  mod_pow {bigint.mod_pow(a, 65537n, 1000003n)} {bigint.mod_pow(a, 3n, 18446744073709551629n)}")
+
+    for b in values do
+        let quotient = if b.is_zero then "-" else "{a / b} {a % b}" fi
+
+        IO.Std.write_line("  {b}: {a + b} {a - b} {a * b} {quotient} {a & b} {a | b} {a ^ b} {a <> b} {a =~ b} {bigint.greatest_common_divisor(a, b)}")
+    od
+od
