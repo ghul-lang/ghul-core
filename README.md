@@ -62,6 +62,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
 - `tests/self-host-members` — the members the compiler's own source uses: `string.format`,
   `replace_line_endings`, `ulong` parsing, `char.is_symbol`, `MutableList`'s `contains` and
   `remove`, `Ghul.Flags` and `LAZY`
+- `tests/float-bits` — `double.to_bits` and `single.to_bits`, against the values .NET's
+  `BitConverter` gives
 - `tests/bigint` — bigint's operators and members, each a host operation on the
   host's BigInt, against the text .NET prints for the same program
 - `tests/bigint_conversions` — `cast` between bigint and the scalars, bigint under
