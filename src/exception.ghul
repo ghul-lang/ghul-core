@@ -5,9 +5,10 @@ namespace Ghul is
         /// What went wrong, for a person to read.
         message: string;
 
-        /// An exception whose message says only that it was thrown.
+        /// An exception whose message names its type and says only that it
+        /// was thrown.
         init() is
-            self.message = "Exception of type 'Ghul.Exception' was thrown.";
+            self.message = "Exception of type '{_type_name(self)}' was thrown.";
         si
 
         /// - message: what went wrong

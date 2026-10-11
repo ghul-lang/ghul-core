@@ -1,5 +1,5 @@
-// An exception constructed with no message, and a subclass that passes
-// none on.
+// An exception constructed with no message, whose message names its
+// runtime type, and a subclass that passes none on.
 use IO.Std.write_line
 
 class QUIET: Ghul.Exception is
@@ -9,6 +9,12 @@ class QUIET: Ghul.Exception is
 si
 
 entry() is
+    try
+        throw Ghul.Exception()
+    catch e: Ghul.Exception
+        write_line(e.message)
+    yrt
+
     try
         throw QUIET()
     catch e: Ghul.Exception
