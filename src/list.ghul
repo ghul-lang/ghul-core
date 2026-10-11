@@ -121,7 +121,7 @@ namespace Collections is
         /// none is.
         ///
         /// - value: the element to look for
-        index_of(value: T) -> int is
+        index_of(value: T) -> int pure is
             let i mut = 0;
 
             while i < _count do
@@ -138,7 +138,7 @@ namespace Collections is
         /// Whether any element is `=~` to `value`.
         ///
         /// - value: the element to look for
-        contains(value: T) -> bool => index_of(value) >= 0;
+        contains(value: T) -> bool pure => index_of(value) >= 0;
 
         /// Sorts the elements in place in the order `comparer` gives,
         /// leaving elements it calls equal where .NET's sort leaves them.
