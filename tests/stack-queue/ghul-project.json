@@ -1,6 +1,6 @@
 {
     "name": "stack-queue",
-    "targets": ["wasm", "llvm"],
+    "targets": ["wasm"],
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
     "dependencies": {
