@@ -846,9 +846,19 @@ namespace IO is
         /// - source: the file to move
         /// - destination: where it goes
         move(source: string, destination: string) static is
+            move(source, destination, false)
+        si
+
+        /// Moves the file at `source` to `destination`.
+        ///
+        /// - source: the file to move
+        /// - destination: where it goes
+        /// - overwrite: whether to replace a file already at `destination`,
+        ///   rather than throw
+        move(source: string, destination: string, overwrite: bool) static is
             let bytes = _FILE_STORE.read(source)
 
-            if exists(destination) then
+            if !overwrite /\ exists(destination) then
                 throw IOException("Cannot create a file when that file already exists.")
             fi
 
@@ -1246,6 +1256,9 @@ namespace IO is
         _start: ubyte[]
         _text: Text.STRING_BUILDER
 
+        /// Whether every write is flushed to the file straight away.
+        auto_flush: bool public
+
         /// A writer over a new file at `path`, replacing any that is there.
         ///
         /// - path: the file to write
@@ -1265,8 +1278,13 @@ namespace IO is
             flush()
         si
 
-        write(text: string) =>
+        write(text: string) is
             _text.append(text)
+
+            if auto_flush then
+                flush()
+            fi
+        si
 
         flush() =>
             _FILE_STORE.write(_path, _FILE_STORE.concat(_start, _UTF8.encode(_text.to_string())))
