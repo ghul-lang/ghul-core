@@ -23,6 +23,10 @@ namespace Collections is
         _count: int;
         _free: int;
 
+        // Compares and hashes the keys in place of their own `=~` and
+        // `get_hash_code`, where the map was given one.
+        _comparer: EqualityComparer[K]?;
+
         /// An empty map.
         init() is
             _allocate(4);
@@ -37,6 +41,14 @@ namespace Collections is
             fi
 
             _allocate(if capacity < 4 then 4 else capacity fi);
+        si
+
+        /// An empty map whose keys are compared and hashed by `comparer`.
+        ///
+        /// - comparer: what says whether two keys are the same key
+        init(comparer: EqualityComparer[K]) is
+            _comparer = comparer;
+            _allocate(4);
         si
 
         /// A map holding the entries of `source`; throws if a key appears
@@ -94,7 +106,7 @@ namespace Collections is
             let entry mut = _buckets[bucket] - 1;
 
             while entry >= 0 do
-                if _hashes[entry] == hash /\ _keys[entry] =~ key then
+                if _hashes[entry] == hash /\ _same(_keys[entry], key) then
                     if previous < 0 then
                         Ghul._array_set(_buckets, bucket, _next[entry]);
                     else
@@ -232,14 +244,18 @@ namespace Collections is
             od
         si
 
-        _hash(key: K) -> int => key.get_hash_code() & 0x7FFF_FFFF;
+        _hash(key: K) -> int =>
+            (if let comparer = _comparer then comparer.get_hash_code(key) else key.get_hash_code() fi) & 0x7FFF_FFFF;
+
+        _same(a: K, b: K) -> bool =>
+            if let comparer = _comparer then comparer.equals(a, b) else a =~ b fi;
 
         _find(key: K) -> int pure is
             let hash = _hash(key);
             let entry mut = _buckets[hash % _buckets.count] - 1;
 
             while entry >= 0 do
-                if _hashes[entry] == hash /\ _keys[entry] =~ key then
+                if _hashes[entry] == hash /\ _same(_keys[entry], key) then
                     return entry;
                 fi
 
