@@ -51,6 +51,27 @@ namespace Ghul is
                 code == 0xBB \/ code == 0xBF \/ code == 0x37E \/ code == 0x387
         si
 
+        /// Whether `c` is a symbol: a mathematical, currency or modifier
+        /// symbol, or another. Covers ASCII and Latin-1, the currency symbols,
+        /// and the arrow, mathematical operator, technical, geometric shape and
+        /// miscellaneous symbol blocks.
+        ///
+        /// - c: the character to test
+        is_symbol(c: char) -> bool static pure is
+            let code = cast int(c)
+
+            return
+                code == 0x24 \/ code == 0x2B \/ code >= 0x3C /\ code <= 0x3E \/ code == 0x5E \/ code == 0x60 \/
+                code == 0x7C \/ code == 0x7E \/
+                code >= 0xA2 /\ code <= 0xA6 \/ code == 0xA8 \/ code == 0xA9 \/ code == 0xAC \/
+                code >= 0xAE /\ code <= 0xB1 \/ code == 0xB4 \/ code == 0xB8 \/ code == 0xD7 \/ code == 0xF7 \/
+                code >= 0x20A0 /\ code <= 0x20C0 \/
+                code >= 0x2190 /\ code <= 0x22FF \/
+                code >= 0x2300 /\ code <= 0x23FF /\ code != 0x2329 /\ code != 0x232A \/
+                code >= 0x25A0 /\ code <= 0x26FF \/
+                code >= 0x2A00 /\ code <= 0x2AFF
+        si
+
         /// The upper-case form of `c`, or `c` itself where it has none.
         ///
         /// - c: the character to convert
