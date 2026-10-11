@@ -36,7 +36,7 @@ namespace Collections is
         /// Whether the set holds `value`.
         ///
         /// - value: the element to look for
-        contains(value: T) -> bool => _map.contains_key(value);
+        contains(value: T) -> bool pure => _map.contains_key(value);
 
         /// Adds every element of `other` the set does not already hold.
         ///

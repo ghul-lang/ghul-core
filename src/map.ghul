@@ -122,7 +122,7 @@ namespace Collections is
         /// Whether the map has `key`.
         ///
         /// - key: the key to look for
-        contains_key(key: K) -> bool => _find(key) >= 0;
+        contains_key(key: K) -> bool pure => _find(key) >= 0;
 
         /// Writes the value `key` maps to into `value`, answering whether
         /// the map has `key`; `value` is set to the default of `V` when it
@@ -234,7 +234,7 @@ namespace Collections is
 
         _hash(key: K) -> int => key.get_hash_code() & 0x7FFF_FFFF;
 
-        _find(key: K) -> int is
+        _find(key: K) -> int pure is
             let hash = _hash(key);
             let entry mut = _buckets[hash % _buckets.count] - 1;
 
