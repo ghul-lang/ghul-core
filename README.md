@@ -64,6 +64,8 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   `remove`, `Ghul.Flags` and `LAZY`
 - `tests/float-bits` — `double.to_bits` and `single.to_bits`, against the values .NET's
   `BitConverter` gives
+- `tests/exception-constructors` — `Exception()` and `NotImplementedException()` with no
+  message
 - `tests/pure-lookups` — a field narrowed by a presence test stays narrowed across
   `contains`, `index_of` and `contains_key`
 - `tests/bigint` — bigint's operators and members, each a host operation on the
