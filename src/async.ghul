@@ -75,43 +75,10 @@ namespace System.Runtime.ExceptionServices is
 si
 
 namespace System is
-    /// The members of .NET's `System.Environment` the source-core targets
-    /// have: the program's variables, leaving the process, the path of the
-    /// running executable, and the time since the program started. The
-    /// variables and arguments are also `Ghul.Environment`.
+    /// The members of .NET's `System.Environment` the wasm target has: the
+    /// time since the program started, for measuring intervals. The program's
+    /// variables and arguments are `Ghul.Environment`.
     class Environment is
-        /// The value of the environment variable `variable`, or null where it
-        /// is not set.
-        ///
-        /// - variable: the name of the variable
-        get_environment_variable(variable: string) -> string? static =>
-            Ghul.ENVIRONMENT.instance[variable]
-
-        /// Ends the process with `exit_code` as its status, after writing out
-        /// what the program has written to standard output.
-        ///
-        /// - exit_code: the process's exit status
-        exit(exit_code: int) static is
-            _exit(exit_code)
-        si
-
-        /// The path of the executable the process is running, or null where
-        /// there is none, as on the wasm target.
-        @IF.llvm()
-        process_path: string? static => _process_path()
-
-        /// The path of the executable the process is running, or null where
-        /// there is none, as on the wasm target.
-        @IF.not.llvm()
-        process_path: string? static => null
-
-        @intrinsic("host.exit")
-        _exit(exit_code: int) static
-
-        @IF.llvm()
-        @intrinsic("host.process_path")
-        _process_path() -> string? static
-
         /// Milliseconds since the program started, which only ever increase.
         tick_count64: long static => cast long(_monotonic_milliseconds())
 
