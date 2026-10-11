@@ -32,7 +32,7 @@ namespace Ghul is
 
         /// A shallow copy of the object: a new object of the same type whose
         /// fields hold what this one's hold.
-        memberwise_clone() -> object => _memberwise_clone(self);
+        memberwise_clone() -> object protected => _memberwise_clone(self);
     si
 
     @intrinsic("object.type_name")
