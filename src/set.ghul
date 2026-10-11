@@ -9,6 +9,13 @@ namespace Collections is
             _map = MAP[T, bool]();
         si
 
+        /// An empty set whose elements are compared and hashed by `comparer`.
+        ///
+        /// - comparer: what says whether two elements are the same element
+        init(comparer: EqualityComparer[T]) is
+            _map = MAP[T, bool](comparer);
+        si
+
         /// A set holding the elements of `source`, each once.
         ///
         /// - source: the elements to add
