@@ -5,6 +5,12 @@ namespace Ghul is
         /// What went wrong, for a person to read.
         message: string;
 
+        /// An exception whose message names its type and says only that it
+        /// was thrown.
+        init() is
+            self.message = "Exception of type '{_type_name(self)}' was thrown.";
+        si
+
         /// - message: what went wrong
         init(message: string) is
             self.message = message;
@@ -13,6 +19,11 @@ namespace Ghul is
 
     /// Thrown by a member that has no body to run: a body-less override.
     class NotImplementedException: Exception is
+        /// An exception saying the operation is not implemented.
+        init() is
+            super.init("The method or operation is not implemented.");
+        si
+
         /// - member: the member that has no body
         init(member: string) is
             super.init(member);
