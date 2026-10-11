@@ -1,0 +1,70 @@
+// .NET's names for these types are kept, so source written against .NET
+// builds here unchanged.
+@@suppress("non-upper-snake-case-name")
+
+namespace System.Text is
+    use IO._UTF8
+
+    /// Converts between text and bytes, as .NET's `System.Text.Encoding`
+    /// does. UTF-8 is the only encoding the source-core targets have.
+    class Encoding abstract is
+        init() is si
+
+        /// UTF-8, writing no byte-order mark.
+        utf8: Encoding static => UTF8Encoding(false)
+
+        /// The bytes that stand for `text`.
+        ///
+        /// - text: the text to encode
+        get_bytes(text: string) -> ubyte[]
+
+        /// The text `bytes` stand for. A byte-order mark at the start is
+        /// skipped, and bytes that are not valid stand for U+FFFD.
+        ///
+        /// - bytes: the bytes to decode
+        get_string(bytes: ubyte[]) -> string
+    si
+
+    /// UTF-8, as .NET's `System.Text.UTF8Encoding` is.
+    class UTF8Encoding: Encoding is
+        _emits_identifier: bool
+
+        /// UTF-8 that writes no byte-order mark.
+        init() is
+            self.init(false)
+        si
+
+        /// - encoder_should_emit_utf8_identifier: whether a file written in
+        ///   this encoding starts with a byte-order mark; `get_bytes` never
+        ///   adds one, as on .NET
+        init(encoder_should_emit_utf8_identifier: bool) is
+            super.init()
+
+            _emits_identifier = encoder_should_emit_utf8_identifier
+        si
+
+        get_bytes(text: string) -> ubyte[] => _UTF8.encode(text)
+
+        get_string(bytes: ubyte[]) -> string => _UTF8.decode(bytes)
+    si
+si
+
+namespace IO is
+    /// Writes text into a string, as .NET's `System.IO.StringWriter` does.
+    class StringWriter: TextWriter is
+        _text: Text.STRING_BUILDER
+
+        /// A writer over an empty string.
+        init() is
+            super.init()
+
+            _text = Text.STRING_BUILDER()
+        si
+
+        write(text: string) =>
+            _text.append(text)
+
+        /// Everything written so far.
+        to_string() -> string => _text.to_string()
+    si
+si
