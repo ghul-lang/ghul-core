@@ -59,6 +59,9 @@ gives tests something to run ([ghul-lang/ghul#3224](https://github.com/ghul-lang
   `Math` members, against .NET's output
 - `tests/sort_dotnet` — the sort compiled for .NET and checked against
   .NET's `List.Sort` for where it leaves elements the comparer calls equal
+- `tests/self-host-members` — the members the compiler's own source uses: `string.format`,
+  `replace_line_endings`, `ulong` parsing, `char.is_symbol`, `MutableList`'s `contains` and
+  `remove`, `Ghul.Flags` and `LAZY`
 - `tests/bigint` — bigint's operators and members, each a host operation on the
   host's BigInt, against the text .NET prints for the same program
 - `tests/bigint_conversions` — `cast` between bigint and the scalars, bigint under
