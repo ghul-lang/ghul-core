@@ -115,9 +115,18 @@ diagnostic that says so, and a comment in the test names what it waits for.
 
 ```sh
 dotnet tool restore
-dotnet ghul-test --use-ghul-cli --ghul "dotnet ghul" tests
+dotnet ghul-test tests                 # each project for the first target it lists
+dotnet ghul-test --config llvm tests  # each project that lists llvm, as a native executable
 ```
 
-Each project builds with the newest installed `ghul.compiler`, which ghul-cli
-installs if there is none. The type-error test passes when the error names
+The configurations are in `ghul-test.json`. Each project builds with the newest
+installed `ghul.compiler`, which ghul-cli installs if there is none, and an
+llvm build links with the ghul-llvm release ghul-cli fetches for it.
+
+A test's manifest lists the targets it passes on. A test that does not yet
+build for llvm leaves llvm out, and the gaps that keep it out are tracked on
+[ghul-lang/ghul#3460](https://github.com/ghul-lang/ghul/issues/3460); it
+goes back in when they close.
+
+The type-error test passes when the error names
 the member and its place.

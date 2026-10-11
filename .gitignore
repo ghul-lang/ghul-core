@@ -15,3 +15,6 @@ formatted/
 **/out/
 
 **/run.exit
+
+# per-target builds of a test, beside it
+.targets-*/

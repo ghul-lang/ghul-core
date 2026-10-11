@@ -1,0 +1,21 @@
+{
+    // How the tests are run: each is a ghul-cli project, built by the
+    // ghul-cli the tool manifest pins, with the compiler it pins. `tests`
+    // runs by default and builds each project for the first target its
+    // manifest lists; `llvm` builds every project that lists llvm as a
+    // native executable, with the ghul-llvm release ghul-cli fetches for
+    // the compiler. Each llvm build runs as its own variant, so an
+    // expectation named for the target (`run.llvm.expected`,
+    // `fail.llvm.expected`) records where llvm differs.
+    "default": "tests",
+    "configurations": {
+        "tests": {
+            "build": "ghul-cli",
+            "ghul": "dotnet ghul"
+        },
+        "llvm": {
+            "extends": "tests",
+            "build_targets": ["llvm"]
+        }
+    }
+}
