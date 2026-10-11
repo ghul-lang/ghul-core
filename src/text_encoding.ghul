@@ -61,7 +61,7 @@ namespace IO is
             _text = Text.STRING_BUILDER()
         si
 
-        write(text: string) =>
+        write(text: string) pure =>
             _text.append(text)
 
         /// Everything written so far.

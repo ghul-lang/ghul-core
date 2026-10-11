@@ -115,7 +115,7 @@ namespace Text is
         append_line(text: string) -> STRING_BUILDER => append(text).append("\n")
 
         /// The number of code units built so far.
-        length: int => _length
+        length: int pure => _length
 
         /// The code unit at `index`, which can be replaced.
         ///
@@ -190,7 +190,7 @@ namespace Text is
         si
 
         /// The text built so far.
-        to_string() -> string is
+        to_string() -> string pure is
             if _chunks? then
                 if _text? then
                     _chunks.add(_text)

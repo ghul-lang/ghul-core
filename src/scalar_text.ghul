@@ -1,12 +1,12 @@
 namespace Ghul is
     partial char is
         /// The string holding just this UTF-16 code unit.
-        to_string() -> string => _string_from_char(self)
+        to_string() -> string pure => _string_from_char(self)
     si
 
     partial int is
         /// The value in decimal, with a leading `-` when it is negative.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -15,12 +15,12 @@ namespace Ghul is
 
     partial bool is
         /// `True` or `False`, as .NET writes a bool.
-        to_string() -> string => if self then "True" else "False" fi
+        to_string() -> string pure => if self then "True" else "False" fi
     si
 
     partial byte is
         /// The value in decimal, with a leading `-` when it is negative.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -29,7 +29,7 @@ namespace Ghul is
 
     partial short is
         /// The value in decimal, with a leading `-` when it is negative.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -38,7 +38,7 @@ namespace Ghul is
 
     partial word is
         /// The value in decimal, with a leading `-` when it is negative.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -47,7 +47,7 @@ namespace Ghul is
 
     partial ubyte is
         /// The value in decimal.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -56,7 +56,7 @@ namespace Ghul is
 
     partial ushort is
         /// The value in decimal.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -65,7 +65,7 @@ namespace Ghul is
 
     partial uint is
         /// The value in decimal.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: long = cast long(self)
 
             return wide.to_string()
@@ -74,7 +74,7 @@ namespace Ghul is
 
     partial uword is
         /// The value in decimal.
-        to_string() -> string is
+        to_string() -> string pure is
             let wide: ulong = cast ulong(self)
 
             return wide.to_string()
@@ -83,7 +83,7 @@ namespace Ghul is
 
     partial ulong is
         /// The value in decimal.
-        to_string() -> string is
+        to_string() -> string pure is
             if self == 0UL then
                 return "0"
             fi
@@ -104,7 +104,7 @@ namespace Ghul is
 
     partial long is
         /// The value in decimal, with a leading `-` when it is negative.
-        to_string() -> string is
+        to_string() -> string pure is
             if self == 0L then
                 return "0"
             fi
@@ -138,13 +138,13 @@ namespace Ghul is
     partial double is
         /// The shortest text that reads back as the same value, as .NET
         /// writes it in the invariant culture.
-        to_string() -> string => _format_double(self)
+        to_string() -> string pure => _format_double(self)
     si
 
     partial single is
         /// The shortest text that reads back as the same value, as .NET
         /// writes it in the invariant culture.
-        to_string() -> string => _format_single(self)
+        to_string() -> string pure => _format_single(self)
     si
 
     // The text of each numeric type under a .NET numeric format string, as

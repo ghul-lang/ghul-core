@@ -22,13 +22,13 @@ namespace Collections is
     /// A sequence that knows how many elements it holds.
     trait Bag[E: out]: Iterable[E] is
         /// The number of elements.
-        count: int;
+        count: int pure;
     si
 
     /// A read-only sequence whose elements can be read by position.
     trait List[E: out]: Bag[E] is
         /// The element at `index`, counting from zero.
-        [index: int]: E;
+        [index: int]: E pure;
     si
 
     /// A collection elements can be added to and cleared from.
@@ -79,12 +79,12 @@ namespace Collections is
     /// A read-only map from keys to values, iterated as key and value pairs.
     trait Map[K, V]: Bag[KEY_VALUE_PAIR[K, V]] is
         /// The value `key` maps to; throws if the map has no such key.
-        [key: K]: V;
+        [key: K]: V pure;
 
         /// Whether the map has `key`.
         ///
         /// - key: the key to look for
-        contains_key(key: K) -> bool;
+        contains_key(key: K) -> bool pure;
 
         /// Writes the value `key` maps to into `value`, answering whether
         /// the map has `key`; `value` is set to the default of `V` when it
@@ -92,7 +92,7 @@ namespace Collections is
         ///
         /// - key: the key to look for
         /// - value: where the value goes
-        try_get_value(key: K, value: V ref) -> bool;
+        try_get_value(key: K, value: V ref) -> bool pure;
 
         /// The keys.
         keys: Iterable[K];

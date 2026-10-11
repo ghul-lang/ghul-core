@@ -24,19 +24,19 @@ namespace IO is
         read() -> int static => _in.read()
 
         /// The writer for standard output.
-        out: TextWriter static => _out
+        out: TextWriter static pure => _out
 
         /// The writer for standard error.
-        error: TextWriter static => _error
+        error: TextWriter static pure => _error
 
         /// Writes a line break to standard output.
-        write_line() static =>
+        write_line() static pure =>
             _write("\n", 1)
 
         /// Writes `text` and then a line break to standard output.
         ///
         /// - text: the text to write
-        write_line(text: string) static is
+        write_line(text: string) static pure is
             _write(text, 1)
             _write("\n", 1)
         si
@@ -45,19 +45,19 @@ namespace IO is
         /// standard output.
         ///
         /// - value: the value to write
-        write_line(value: object) static =>
+        write_line(value: object) static pure =>
             write_line(value.to_string())
 
         /// Writes `text` to standard output.
         ///
         /// - text: the text to write
-        write(text: string) static =>
+        write(text: string) static pure =>
             _write(text, 1)
 
         /// Writes `value` as its `to_string` text to standard output.
         ///
         /// - value: the value to write
-        write(value: object) static =>
+        write(value: object) static pure =>
             _write(value.to_string(), 1)
 
         // Hands `text` to the host's stream: 1 is standard output and 2
@@ -120,22 +120,22 @@ namespace IO is
         /// Writes `text`.
         ///
         /// - text: the text to write
-        write(text: string);
+        write(text: string) pure;
 
         /// Writes `value` as its `to_string` text.
         ///
         /// - value: the value to write
-        write(value: object) =>
+        write(value: object) pure =>
             write(value.to_string())
 
         /// Writes a line break.
-        write_line() =>
+        write_line() pure =>
             write("\n")
 
         /// Writes `text` and then a line break.
         ///
         /// - text: the text to write
-        write_line(text: string) is
+        write_line(text: string) pure is
             write(text)
             write("\n")
         si
@@ -143,7 +143,7 @@ namespace IO is
         /// Writes `value` as its `to_string` text, then a line break.
         ///
         /// - value: the value to write
-        write_line(value: object) =>
+        write_line(value: object) pure =>
             write_line(value.to_string())
 
         /// Writes out anything the writer holds back. The host's streams
@@ -161,7 +161,7 @@ namespace IO is
             _stream = stream
         si
 
-        write(text: string) =>
+        write(text: string) pure =>
             _write(text, _stream)
 
         @intrinsic("host.write")

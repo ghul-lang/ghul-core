@@ -49,11 +49,11 @@ namespace Collections is
         si
 
         /// The number of entries.
-        count: int => _count;
+        count: int pure => _count;
 
         /// The value `key` maps to; throws if the map has no such key.
         /// Assigning adds the key or replaces its value.
-        [key: K]: V => _get(key),
+        [key: K]: V pure => _get(key),
             = value is
                 _store(key, value, true);
             si
@@ -130,7 +130,7 @@ namespace Collections is
         ///
         /// - key: the key to look for
         /// - value: where the value goes
-        try_get_value(key: K, value: V ref) -> bool is
+        try_get_value(key: K, value: V ref) -> bool pure is
             let entry = _find(key);
 
             if entry < 0 then

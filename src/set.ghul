@@ -21,7 +21,7 @@ namespace Collections is
         si
 
         /// The number of elements.
-        count: int => _map.count;
+        count: int pure => _map.count;
 
         /// Adds `value`, answering whether the set did not already hold it.
         ///
