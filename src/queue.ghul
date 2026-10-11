@@ -29,7 +29,7 @@ namespace Collections is
         si
 
         /// The number of elements.
-        count: int => _count;
+        count: int pure => _count;
 
         /// Adds `value` at the back.
         ///
@@ -62,7 +62,7 @@ namespace Collections is
 
         /// The element at the front, left in place. Throws
         /// `Ghul.InvalidOperationException` when the queue is empty.
-        peek() -> T is
+        peek() -> T pure is
             if _count == 0 then
                 throw Ghul.InvalidOperationException("Queue empty.");
             fi

@@ -1278,7 +1278,7 @@ namespace IO is
             flush()
         si
 
-        write(text: string) is
+        write(text: string) pure is
             _text.append(text)
 
             if auto_flush then

@@ -29,7 +29,7 @@ namespace Ghul is
         si
 
         /// The string itself.
-        to_string() -> string => self
+        to_string() -> string pure => self
     si
 
     @intrinsic("string.length")

@@ -18,7 +18,7 @@ namespace Ghul is
         /// order. With no separators, the pieces are split at white space.
         ///
         /// - separators: the code units to split at
-        split(separators: char[]) -> string[] => split(separators, StringSplitOptions.NONE)
+        split(separators: char[]) -> string[] pure => split(separators, StringSplitOptions.NONE)
 
         /// The pieces between each occurrence of any of `separators`, in
         /// order, kept or trimmed as `options` says. With no separators, the
@@ -26,7 +26,7 @@ namespace Ghul is
         ///
         /// - separators: the code units to split at
         /// - options: whether to trim the pieces and leave out empty ones
-        split(separators: char[], options: StringSplitOptions) -> string[] is
+        split(separators: char[], options: StringSplitOptions) -> string[] pure is
             let pieces = LIST[string]()
             let start mut = 0
             let i mut = 0
@@ -50,7 +50,7 @@ namespace Ghul is
         ///
         /// - separator: the code unit to split at
         /// - options: whether to trim the pieces and leave out empty ones
-        split(separator: char, options: StringSplitOptions) -> string[] =>
+        split(separator: char, options: StringSplitOptions) -> string[] pure =>
             split(_string_from_char(separator), options)
 
         /// The pieces between each `separator`, kept or trimmed as `options`
@@ -58,7 +58,7 @@ namespace Ghul is
         ///
         /// - separator: the text to split at
         /// - options: whether to trim the pieces and leave out empty ones
-        split(separator: string, options: StringSplitOptions) -> string[] is
+        split(separator: string, options: StringSplitOptions) -> string[] pure is
             let pieces = LIST[string]()
 
             for piece in split(separator) do
@@ -74,7 +74,7 @@ namespace Ghul is
         ///
         /// - separators: the texts to split at
         /// - options: whether to trim the pieces and leave out empty ones
-        split(separators: string[], options: StringSplitOptions) -> string[] is
+        split(separators: string[], options: StringSplitOptions) -> string[] pure is
             let pieces = LIST[string]()
             let start mut = 0
             let i mut = 0
@@ -97,7 +97,7 @@ namespace Ghul is
         si
 
         /// The string's code units, as a new array.
-        to_char_array() -> char[] is
+        to_char_array() -> char[] pure is
             let result = _array_new[char](length)
             let i mut = 0
 
@@ -112,13 +112,13 @@ namespace Ghul is
         /// The string without the code units from `start` to its end.
         ///
         /// - start: where to start removing
-        remove(start: int) -> string => substring(0, start)
+        remove(start: int) -> string pure => substring(0, start)
 
         /// The string without `count` code units from `start`.
         ///
         /// - start: where to start removing
         /// - count: how many code units to remove
-        remove(start: int, count: int) -> string =>
+        remove(start: int, count: int) -> string pure =>
             _string_concat(substring(0, start), substring(start + count))
 
         /// The string with `value` inserted at `start`.
@@ -131,13 +131,13 @@ namespace Ghul is
         /// The string without leading and trailing occurrences of `trim_char`.
         ///
         /// - trim_char: the code unit to remove
-        trim(trim_char: char) -> string => trim([trim_char])
+        trim(trim_char: char) -> string pure => trim([trim_char])
 
         /// The string without leading and trailing occurrences of any of
         /// `trim_chars`; with none given, without white space.
         ///
         /// - trim_chars: the code units to remove
-        trim(trim_chars: char[]) -> string is
+        trim(trim_chars: char[]) -> string pure is
             let start = _first_not_in(trim_chars)
             let end = _last_not_in(trim_chars)
 
@@ -151,32 +151,32 @@ namespace Ghul is
         /// The string without leading occurrences of `trim_char`.
         ///
         /// - trim_char: the code unit to remove
-        trim_start(trim_char: char) -> string => trim_start([trim_char])
+        trim_start(trim_char: char) -> string pure => trim_start([trim_char])
 
         /// The string without leading occurrences of any of `trim_chars`;
         /// with none given, without white space.
         ///
         /// - trim_chars: the code units to remove
-        trim_start(trim_chars: char[]) -> string => substring(_first_not_in(trim_chars))
+        trim_start(trim_chars: char[]) -> string pure => substring(_first_not_in(trim_chars))
 
         /// The string without trailing occurrences of `trim_char`.
         ///
         /// - trim_char: the code unit to remove
-        trim_end(trim_char: char) -> string => trim_end([trim_char])
+        trim_end(trim_char: char) -> string pure => trim_end([trim_char])
 
         /// The string without trailing occurrences of any of `trim_chars`;
         /// with none given, without white space.
         ///
         /// - trim_chars: the code units to remove
-        trim_end(trim_chars: char[]) -> string => substring(0, _last_not_in(trim_chars) + 1)
+        trim_end(trim_chars: char[]) -> string pure => substring(0, _last_not_in(trim_chars) + 1)
 
         /// The string with each letter made upper case under the invariant
         /// culture.
-        to_upper_invariant() -> string => to_upper()
+        to_upper_invariant() -> string pure => to_upper()
 
         /// The string with each letter made lower case under the invariant
         /// culture.
-        to_lower_invariant() -> string => to_lower()
+        to_lower_invariant() -> string pure => to_lower()
 
         /// The order of `a` and `b` by their code units: negative where `a`
         /// orders first, zero where they are equal, positive otherwise. An

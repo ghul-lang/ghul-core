@@ -18,7 +18,7 @@ namespace IO is
         /// Whether `path` starts at the root.
         ///
         /// - path: the path to look at
-        is_path_rooted(path: string?) -> bool static =>
+        is_path_rooted(path: string?) -> bool static pure =>
             if let p = path then p.starts_with('/') else false fi
 
         /// `first` and `second` joined into one path. Where `second` starts at
@@ -26,7 +26,7 @@ namespace IO is
         ///
         /// - first: the path to start from
         /// - second: the path to add
-        combine(first: string, second: string) -> string static is
+        combine(first: string, second: string) -> string static pure is
             if second.length == 0 then
                 return first
             fi
@@ -47,7 +47,7 @@ namespace IO is
         /// - first: the path to start from
         /// - second: the path to add next
         /// - third: the path to add last
-        combine(first: string, second: string, third: string) -> string static =>
+        combine(first: string, second: string, third: string) -> string static pure =>
             combine(combine(first, second), third)
 
         /// The four paths joined into one path.
@@ -56,13 +56,13 @@ namespace IO is
         /// - second: the path to add next
         /// - third: the path to add after that
         /// - fourth: the path to add last
-        combine(first: string, second: string, third: string, fourth: string) -> string static =>
+        combine(first: string, second: string, third: string, fourth: string) -> string static pure =>
             combine(combine(combine(first, second), third), fourth)
 
         /// The paths joined into one path, in order.
         ///
         /// - paths: the paths to join
-        combine(paths: string[]) -> string static is
+        combine(paths: string[]) -> string static pure is
             let result mut = ""
 
             for path in paths do
@@ -76,13 +76,13 @@ namespace IO is
         /// at, or empty where it ends with a `/`.
         ///
         /// - path: the path to take the name from
-        get_file_name(path: string) -> string static =>
+        get_file_name(path: string) -> string static pure =>
             path.substring(path.last_index_of('/') + 1)
 
         /// The name `get_file_name` answers, without its extension.
         ///
         /// - path: the path to take the name from
-        get_file_name_without_extension(path: string) -> string static is
+        get_file_name_without_extension(path: string) -> string static pure is
             let name = get_file_name(path)
             let dot = name.last_index_of('.')
 
@@ -93,7 +93,7 @@ namespace IO is
         /// or empty where it has none.
         ///
         /// - path: the path to take the extension from
-        get_extension(path: string) -> string static is
+        get_extension(path: string) -> string static pure is
             let name = get_file_name(path)
             let dot = name.last_index_of('.')
 
@@ -103,7 +103,7 @@ namespace IO is
         /// Whether the last part of `path` has an extension.
         ///
         /// - path: the path to look at
-        has_extension(path: string) -> bool static =>
+        has_extension(path: string) -> bool static pure =>
             get_extension(path).length > 0
 
         /// `path` with the extension of its last part replaced by
@@ -111,7 +111,7 @@ namespace IO is
         ///
         /// - path: the path to change
         /// - extension: the new extension, with or without its leading `.`
-        change_extension(path: string, extension: string?) -> string static is
+        change_extension(path: string, extension: string?) -> string static pure is
             let name = get_file_name(path)
             let dot = name.last_index_of('.')
             let stem = if dot < 0 then path else path.substring(0, path.length - name.length + dot) fi
@@ -127,7 +127,7 @@ namespace IO is
         /// the root or empty.
         ///
         /// - path: the path to take the directory from
-        get_directory_name(path: string) -> string? static is
+        get_directory_name(path: string) -> string? static pure is
             if path.length == 0 \/ path =~ "/" then
                 return null
             fi
@@ -149,7 +149,7 @@ namespace IO is
         /// from the root is taken from the current directory.
         ///
         /// - path: the path to resolve
-        get_full_path(path: string) -> string static is
+        get_full_path(path: string) -> string static pure is
             let rooted = if is_path_rooted(path) then path else combine(Directory.get_current_directory(), path) fi
             let parts = LIST[string]()
 
@@ -178,7 +178,7 @@ namespace IO is
         ///
         /// - relative_to: the directory to start from
         /// - path: the path to reach
-        get_relative_path(relative_to: string, path: string) -> string static is
+        get_relative_path(relative_to: string, path: string) -> string static pure is
             let from = get_full_path(relative_to).split('/', Ghul.StringSplitOptions.REMOVE_EMPTY_ENTRIES)
             let to = get_full_path(path).split('/', Ghul.StringSplitOptions.REMOVE_EMPTY_ENTRIES)
             let shared mut = 0

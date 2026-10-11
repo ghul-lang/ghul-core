@@ -35,13 +35,13 @@ namespace Collections is
         si
 
         /// The number of elements.
-        count: int => _count;
+        count: int pure => _count;
 
         /// The number of elements the list can hold before it grows.
         capacity: int => _items.count;
 
         /// The element at `index`, counting from zero.
-        [index: int]: T =>
+        [index: int]: T pure =>
             if index < 0 \/ index >= _count then
                 throw Ghul.ArgumentOutOfRangeException("index")
             else

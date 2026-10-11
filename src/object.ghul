@@ -27,7 +27,7 @@ namespace Ghul is
         /// The type of the object. A member of the same name declared on a
         /// type hides this rather than overriding it.
         @intrinsic("object.get_type")
-        get_type() -> Type =>
+        get_type() -> Type pure =>
             _type_of(self);
     si
 

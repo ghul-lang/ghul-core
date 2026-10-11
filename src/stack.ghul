@@ -26,7 +26,7 @@ namespace Collections is
         si
 
         /// The number of elements.
-        count: int => _count;
+        count: int pure => _count;
 
         /// Adds `value` on top.
         ///
@@ -58,7 +58,7 @@ namespace Collections is
 
         /// The element on top, left in place. Throws
         /// `Ghul.InvalidOperationException` when the stack is empty.
-        peek() -> T is
+        peek() -> T pure is
             if _count == 0 then
                 throw Ghul.InvalidOperationException("Stack empty.");
             fi
