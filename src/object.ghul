@@ -43,8 +43,4 @@ namespace Ghul is
 
     @intrinsic("object.memberwise_clone")
     _memberwise_clone(value: object) -> object
-
-    // A hash of `value`'s identity, the same for as long as it lives.
-    @intrinsic("object.identity_hash")
-    _identity_hash(value: object) -> int pure
 si
