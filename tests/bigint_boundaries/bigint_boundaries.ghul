@@ -45,3 +45,20 @@ for i in 0..back_in_range.count do
 
     IO.Std.write_line("{computed}: {computed =~ direct} {computed.is_zero} {computed.is_one} {computed.sign} {computed.get_hash_code() == direct.get_hash_code()} {computed + 1n} {computed - 1n}")
 od
+
+// A value too wide for a double converts with its magnitude truncated to
+// the 53 bits a double holds, whether the i64 or the host holds it.
+let wide = [
+    9007199254740993n, 9007199254740995n, -9007199254740995n,
+    9223372036854775807n, -9223372036854775807n, -9223372036854775808n,
+    9223372036854775809n, 18446744073709553665n,
+    -123456789012345678901234567890123456789n
+]
+
+for a in values do
+    IO.Std.write_line("{a}: {cast double(a)} {cast single(a)}")
+od
+
+for a in wide do
+    IO.Std.write_line("{a}: {cast double(a)} {cast single(a)} {bigint(cast double(a))}")
+od

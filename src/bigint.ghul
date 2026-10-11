@@ -607,9 +607,29 @@ namespace Ghul is
     _bigint_to_long(value: bigint) -> long pure =>
         if _bigint_is_small(value) then _bigint_small(value) else _bigint_to_long_host(value) fi
 
-    // The double nearest `value`.
+    // `value` as a double, as .NET converts a bigint: the magnitude
+    // truncated to the 53 bits a double holds, where converting the long
+    // itself would round to the nearest.
+    _bigint_small_to_double(value: long) -> double pure is
+        let magnitude = if value < 0L then cast ulong(-value) else cast ulong(value) fi
+        let shift mut = 0
+
+        while (magnitude >> shift) >= 9007199254740992ul do
+            shift = shift + 1
+        od
+
+        if shift == 0 then
+            return double(value)
+        fi
+
+        let result = double(cast long(magnitude >> shift)) * double(1L << shift)
+
+        return if value < 0L then -result else result fi
+    si
+
+    // `value` as a double, as .NET converts a bigint.
     _bigint_to_double(value: bigint) -> double pure =>
-        if _bigint_is_small(value) then double(_bigint_small(value)) else _bigint_to_double_host(value) fi
+        if _bigint_is_small(value) then _bigint_small_to_double(_bigint_small(value)) else _bigint_to_double_host(value) fi
 
     // `value` as a long, or OverflowException where it lies outside `low`
     // to `high`.
@@ -695,14 +715,14 @@ namespace Ghul is
     si
 
     partial double is
-        /// The double nearest `value`.
+        /// `value` as a double, its magnitude truncated to the 53 bits a double holds.
         ///
         /// - value: the bigint to convert
         op_explicit(value: bigint) -> double static => _bigint_to_double(value)
     si
 
     partial single is
-        /// The single nearest `value`.
+        /// `value` as a single, rounded from the double it converts to.
         ///
         /// - value: the bigint to convert
         op_explicit(value: bigint) -> single static => cast single(_bigint_to_double(value))
