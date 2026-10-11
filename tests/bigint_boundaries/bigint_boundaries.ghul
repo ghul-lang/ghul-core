@@ -24,3 +24,24 @@ for a in values do
         IO.Std.write_line("  {b}: {a + b} {a - b} {a * b} {quotient} {a & b} {a | b} {a ^ b} {a <> b} {a =~ b} {bigint.greatest_common_divisor(a, b)}")
     od
 od
+
+// Results the host computes that land back in the i64's range compare,
+// test and hash as the same value made directly.
+let back_in_range = [
+    9223372036854775808n + -1n,
+    -9223372036854775809n + 1n,
+    18446744073709551616n - 18446744073709551616n,
+    18446744073709551616n / 18446744073709551616n,
+    -18446744073709551616n / 18446744073709551616n,
+    (18446744073709551616n * 3n) % 18446744073709551616n,
+    bigint.pow(2n, 64) >> 64
+]
+
+let made_directly = [9223372036854775807n, -9223372036854775808n, 0n, 1n, -1n, 0n, 1n]
+
+for i in 0..back_in_range.count do
+    let computed = back_in_range[i]
+    let direct = made_directly[i]
+
+    IO.Std.write_line("{computed}: {computed =~ direct} {computed.is_zero} {computed.is_one} {computed.sign} {computed.get_hash_code() == direct.get_hash_code()} {computed + 1n} {computed - 1n}")
+od

@@ -453,7 +453,9 @@ namespace Ghul is
         _lowest: long static => -9223372036854775807L - 1L
 
         // The form every bigint the host answers is moved into: small where
-        // the value fits in a long.
+        // the value fits in a long. Nothing here calls it: the compiler
+        // passes every bigint a host operation answers through it, so a host
+        // result that fits is small before any code here sees it.
         _canonical(value: bigint) -> bigint static pure =>
             if _bigint_is_small(value) \/ !_fits_long(value) then value else bigint(_bigint_to_long_host(value)) fi
 
