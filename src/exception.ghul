@@ -79,6 +79,30 @@ namespace Ghul is
         si
     si
 
+    /// Thrown where a member is reached through a null reference.
+    class NullReferenceException: Exception is
+        init() is
+            super.init("Object reference not set to an instance of an object.");
+        si
+
+        /// - message: what was reached through null
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
+    /// Thrown by an index into an array or a string that is outside it.
+    class IndexOutOfRangeException: Exception is
+        init() is
+            super.init("Index was outside the bounds of the array.");
+        si
+
+        /// - message: which index was outside what
+        init(message: string) is
+            super.init(message);
+        si
+    si
+
     /// The base of the exceptions arithmetic raises.
     class ArithmeticException: Exception is
         init() is
