@@ -23,9 +23,12 @@ namespace Collections is
         _count: int;
         _free: int;
 
-        // Compares and hashes the keys in place of their own `=~` and
-        // `get_hash_code`, where the map was given one.
-        _comparer: EqualityComparer[K]?;
+        // Hash and compare the keys in place of their own `get_hash_code` and
+        // `=~`, where the map was given a comparer. They are function values
+        // rather than the comparer itself, so that a map made without one
+        // calls nothing through the trait.
+        _hash_of: ((K) -> int)?;
+        _same_as: ((K, K) -> bool)?;
 
         /// An empty map.
         init() is
@@ -47,7 +50,8 @@ namespace Collections is
         ///
         /// - comparer: what says whether two keys are the same key
         init(comparer: EqualityComparer[K]) is
-            _comparer = comparer;
+            _hash_of = key => comparer.get_hash_code(key);
+            _same_as = (a, b) => comparer.equals(a, b);
             _allocate(4);
         si
 
@@ -245,10 +249,10 @@ namespace Collections is
         si
 
         _hash(key: K) -> int =>
-            (if let comparer = _comparer then comparer.get_hash_code(key) else key.get_hash_code() fi) & 0x7FFF_FFFF;
+            (if let hash_of = _hash_of then hash_of(key) else key.get_hash_code() fi) & 0x7FFF_FFFF;
 
         _same(a: K, b: K) -> bool =>
-            if let comparer = _comparer then comparer.equals(a, b) else a =~ b fi;
+            if let same_as = _same_as then same_as(a, b) else a =~ b fi;
 
         _find(key: K) -> int pure is
             let hash = _hash(key);
