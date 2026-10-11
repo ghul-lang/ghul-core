@@ -63,6 +63,17 @@ namespace Collections is
         ///
         /// - index: the position of the element to remove
         remove_at(index: int);
+
+        /// Whether the list holds `value`.
+        ///
+        /// - value: the element to look for
+        contains(value: E) -> bool;
+
+        /// Removes the first element equal to `value`, answering whether there
+        /// was one.
+        ///
+        /// - value: the element to remove
+        remove(value: E) -> bool;
     si
 
     /// A read-only map from keys to values, iterated as key and value pairs.

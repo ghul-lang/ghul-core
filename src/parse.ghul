@@ -71,6 +71,39 @@ namespace Ghul is
         si
     si
 
+    partial ulong is
+        /// The `ulong` that `text` holds; throws where it holds none, or one
+        /// outside `ulong`'s range.
+        ///
+        /// - text: the text to parse
+        parse(text: string) -> ulong static is
+            let (status, value) = _parse_unsigned(text)
+
+            _throw_unless_parsed(status)
+
+            return value
+        si
+
+        /// Whether `text` holds a `ulong`, writing it to `result` where it does
+        /// and zero where it does not.
+        ///
+        /// - text: the text to parse
+        /// - result: where the value is written
+        try_parse(text: string?, result: ulong ref) -> bool static is
+            if text? then
+                let (status, value) = _parse_unsigned(text)
+
+                if status == 0 then
+                    result! = value
+                    return true
+                fi
+            fi
+
+            result! = 0UL
+            return false
+        si
+    si
+
     partial long is
         /// The `long` that `text` holds; throws where it holds none, or one
         /// outside `long`'s range.
@@ -189,6 +222,41 @@ namespace Ghul is
         od
 
         return (0, if is_negative then value else -value fi)
+    si
+
+    // Accumulated upwards in a `ulong`, whose range no `long` reaches.
+    _parse_unsigned(text: string) -> (status: int, value: ulong) is
+        let end = _end_of_number(text)
+        let i mut = _start_of_number(text)
+
+        if i < end /\ text[i] == '+' then
+            i = i + 1
+        fi
+
+        if i >= end then
+            return (1, 0UL)
+        fi
+
+        let value mut = 0UL
+
+        while i < end do
+            let c = text[i]
+
+            if !char.is_digit(c) then
+                return (1, 0UL)
+            fi
+
+            let digit = cast ulong(cast int(c) - 48)
+
+            if value > (18446744073709551615UL - digit) / 10UL then
+                return (2, 0UL)
+            fi
+
+            value = value * 10UL + digit
+            i = i + 1
+        od
+
+        return (0, value)
     si
 
     _parse_double(text: string) -> (status: int, value: double) is
