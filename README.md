@@ -138,12 +138,12 @@ result. Awaiting it as a `TASK` gives nothing.
 
 There is one thread, so nothing runs concurrently. A continuation is queued
 when what it waits for completes, and the queue runs only when something
-waits, through `result` or `wait`. Waiting runs queued work, and completes `delay`s as the host's monotonic
-clock reaches them, until the task completes. A wait nothing can satisfy,
-with no work queued and no delay pending, throws
-`Ghul.InvalidOperationException` rather than hanging. A task that threw
-throws `Ghul.AggregateException` holding the exception from `result` and
-`wait`, and the exception itself from `await`, as on .NET.
+waits, through `result` or `wait`. Waiting runs queued work, and completes
+`delay`s as the host's monotonic clock reaches them, until the task
+completes. A wait nothing can satisfy, with no work queued and no delay
+pending, throws `Ghul.InvalidOperationException` rather than hanging. A
+task that threw throws `Ghul.AggregateException` holding the exception from
+`result` and `wait`, and the exception itself from `await`, as on .NET.
 
 The library declares what the compiler's lowering of an asynchronous function
 and the common task members need: `completed_task`, `from_result`,
