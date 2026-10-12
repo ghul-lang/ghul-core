@@ -10,9 +10,9 @@ namespace Ghul is
         init() is si
 
         /// A hash that is the same for objects `equals` counts as equal. By
-        /// default that is the object's identity, and every object of one type
-        /// hashes alike.
-        get_hash_code() -> int => _type_name(self).get_hash_code();
+        /// default that is a hash of the object's identity, so distinct objects
+        /// of one type spread across a map's buckets.
+        get_hash_code() -> int => _identity_hash(self);
 
         /// Whether `other` is this same object.
         ///
