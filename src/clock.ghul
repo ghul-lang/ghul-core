@@ -5,7 +5,7 @@
 namespace System is
     /// An interval of time, counted in ticks of 100 nanoseconds, as .NET's
     /// `System.TimeSpan` counts it.
-    struct TimeSpan is
+    struct TimeSpan: IFormattable, Ghul.Comparable[TimeSpan] is
         /// The interval in ticks of 100 nanoseconds.
         ticks: long
 
@@ -91,7 +91,7 @@ namespace System is
     /// A moment in time, counted in ticks of 100 nanoseconds since
     /// 0001-01-01T00:00:00, as .NET's `System.DateTime` counts it. The
     /// source-core targets know no time zone, so the time is always UTC.
-    struct DateTime: IFormattable is
+    struct DateTime: IFormattable, Ghul.Comparable[DateTime] is
         /// The moment in ticks of 100 nanoseconds since 0001-01-01T00:00:00.
         ticks: long
 
@@ -215,6 +215,21 @@ namespace System.Diagnostics is
 
         /// The time measured, in whole milliseconds.
         elapsed_milliseconds: long => cast long(_elapsed)
+
+        /// The time measured, in ticks of the stopwatch's timer: `frequency`
+        /// of them a second.
+        elapsed_ticks: long => cast long(_elapsed * 1_000_000.0)
+
+        /// The number of ticks a second the stopwatch's timer counts: one a
+        /// nanosecond, as on .NET under Linux.
+        frequency: long static => 1_000_000_000L
+
+        /// Whether the timer counts finer than milliseconds.
+        is_high_resolution: bool static => true
+
+        /// The timer's current count, in ticks of `frequency` a second, from
+        /// an arbitrary start that does not change while the program runs.
+        get_timestamp() -> long static => cast long(_monotonic_milliseconds() * 1_000_000.0)
 
         // Milliseconds since the program started, which only ever increase.
         @intrinsic("host.monotonic_milliseconds")

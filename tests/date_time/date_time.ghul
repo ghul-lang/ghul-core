@@ -45,4 +45,15 @@ entry() is
     let formattable: System.IFormattable = d
 
     write_line(formattable.to_string("yyyy/MM", null))
+
+    let format = "hh\\:mm\\:ss\\,fff"
+    let stamp = TimeSpan.parse_exact("01:02:03,456", format, null)
+
+    write_line("{stamp} {(stamp + TimeSpan.from_seconds(90L)).to_string(format)} {stamp.to_string("c")} {stamp.to_string("g")} {stamp.to_string("G")}")
+    write_line("{TimeSpan.parse("1:02")} {TimeSpan.parse("3.04:05:06.5")} {TimeSpan.parse(" -00:00:07 ")} {TimeSpan.parse("2")} {TimeSpan.parse("12:34:56").total_seconds}")
+    write_line("{TimeSpan.from_hours(5)} {TimeSpan.from_days(2)} {TimeSpan.from_minutes(90L)} {t.to_string("d\\.hh\\:mm")} {t.to_string("%h")} {t.to_string("'['hh']'")}")
+    write_line("{System.Diagnostics.Stopwatch.frequency} {System.Diagnostics.Stopwatch.is_high_resolution}")
+    write_line("{earliest(DateTime(2026, 3, 1), DateTime(2025, 12, 31))} {earliest(t, TimeSpan.zero)}")
 si
+
+earliest[T: Ghul.Comparable[T]](a: T, b: T) -> T => if a <> b <= 0 then a else b fi
