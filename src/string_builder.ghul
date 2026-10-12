@@ -1,31 +1,31 @@
 namespace Text is
     /// Accumulates text a piece at a time, as an interpolated string does.
     class STRING_BUILDER is
-        // What has been built is `_chunks` in order, then `_text`. Text is
-        // joined onto `_text` while that stays short, so a builder made of a
-        // few pieces never allocates a list; a longer piece, or a `_text` that
-        // would grow past the limit, is moved to `_chunks` instead, so that
-        // appending costs the same however much has been built. `to_string`
-        // joins the chunks once, pairwise, rather than copying what is built
-        // for every append.
-        _text: string?
-        _chunks: Collections.LIST[string]?
+        // What has been built is the first `_length` code units of `_chars`,
+        // which doubles when it fills, so appending costs the same however
+        // much has been built and `to_string` copies the text once.
+        _chars: char[]
         _length: int
 
-        init() is si
+        init() is
+            _chars = Ghul._array_new[char](_INITIAL_CAPACITY)
+        si
 
         /// A builder holding `value` to start with.
         ///
         /// - value: the text to start with
         init(value: string) is
+            _chars = Ghul._array_new[char](if value.length > _INITIAL_CAPACITY then value.length else _INITIAL_CAPACITY fi)
             append(value)
         si
 
-        /// A builder with room for `capacity` characters. The capacity is a
-        /// hint, which the builder does not need.
+        /// A builder with room for `capacity` code units before it has to
+        /// grow.
         ///
-        /// - capacity: the number of characters to make room for
-        init(capacity: int) is si
+        /// - capacity: the number of code units to make room for
+        init(capacity: int) is
+            _chars = Ghul._array_new[char](if capacity > _INITIAL_CAPACITY then capacity else _INITIAL_CAPACITY fi)
+        si
 
         /// Appends `text` to the text built so far, and returns this builder.
         /// A null appends nothing, as .NET's builder does.
@@ -36,24 +36,18 @@ namespace Text is
                 return self
             fi
 
-            let tail_length = if let tail = _text then tail.length else 0 fi
+            let count = text.length
 
-            if tail_length + text.length <= _TAIL_LIMIT then
-                _text = _string_concat(_text, text)
-            else
-                if !_chunks? then
-                    _chunks = Collections.LIST[string]()
-                fi
+            _ensure(_length + count)
 
-                if _text? then
-                    _chunks.add(_text)
-                fi
+            let i mut = 0
 
-                _chunks.add(text)
-                _text = null
-            fi
+            while i < count do
+                Ghul._array_set(_chars, _length + i, text[i])
+                i = i + 1
+            od
 
-            _length = _length + text.length
+            _length = _length + count
 
             return self
         si
@@ -61,19 +55,33 @@ namespace Text is
         /// Appends `value`, and returns this builder.
         ///
         /// - value: the code unit to append
-        append(value: char) -> STRING_BUILDER => append(_string_from_char(value))
+        append(value: char) -> STRING_BUILDER is
+            _ensure(_length + 1)
+            Ghul._array_set(_chars, _length, value)
+            _length = _length + 1
+
+            return self
+        si
 
         /// Appends `count` copies of `value`, and returns this builder.
         ///
         /// - value: the code unit to append
         /// - count: how many copies to append
         append(value: char, count: int) -> STRING_BUILDER is
+            if count <= 0 then
+                return self
+            fi
+
+            _ensure(_length + count)
+
             let i mut = 0
 
             while i < count do
-                append(value)
+                Ghul._array_set(_chars, _length + i, value)
                 i = i + 1
             od
+
+            _length = _length + count
 
             return self
         si
@@ -120,21 +128,16 @@ namespace Text is
         /// The code unit at `index`, which can be replaced.
         ///
         /// - index: the position of the code unit, from 0
-        [index: int]: char => to_string()[index],
+        [index: int]: char => _char_at(index),
             = value is
-                let text = to_string()
+                _check_index(index)
 
-                if index < 0 \/ index >= text.length then
-                    throw Ghul.ArgumentOutOfRangeException("index");
-                fi
-
-                _replace(_string_concat(_string_concat(text.substring(0, index), _string_from_char(value)), text.substring(index + 1)))
+                Ghul._array_set(_chars, index, value)
             si
 
-        /// Removes everything built so far, and returns this builder.
+        /// Removes everything built so far, keeping the room it took so the
+        /// builder can be reused, and returns this builder.
         clear() -> STRING_BUILDER is
-            _text = null
-            _chunks = null
             _length = 0
             return self
         si
@@ -144,9 +147,30 @@ namespace Text is
         /// - index: where to insert, from 0 to `length`
         /// - value: the text to insert
         insert(index: int, value: string) -> STRING_BUILDER is
-            let text = to_string()
+            if index < 0 \/ index > _length then
+                throw Ghul.ArgumentOutOfRangeException("index")
+            fi
 
-            _replace(_string_concat(_string_concat(text.substring(0, index), value), text.substring(index)))
+            let count = value.length
+
+            _ensure(_length + count)
+
+            let i mut = _length - 1
+
+            while i >= index do
+                Ghul._array_set(_chars, i + count, _chars[i])
+                i = i - 1
+            od
+
+            let j mut = 0
+
+            while j < count do
+                Ghul._array_set(_chars, index + j, value[j])
+                j = j + 1
+            od
+
+            _length = _length + count
+
             return self
         si
 
@@ -161,9 +185,19 @@ namespace Text is
         /// - start: where to start removing
         /// - count: how many code units to remove
         remove(start: int, count: int) -> STRING_BUILDER is
-            let text = to_string()
+            if start < 0 \/ count < 0 \/ start + count > _length then
+                throw Ghul.ArgumentOutOfRangeException("start")
+            fi
 
-            _replace(_string_concat(text.substring(0, start), text.substring(start + count)))
+            let i mut = start + count
+
+            while i < _length do
+                Ghul._array_set(_chars, i - count, _chars[i])
+                i = i + 1
+            od
+
+            _length = _length - count
+
             return self
         si
 
@@ -190,26 +224,37 @@ namespace Text is
         si
 
         /// The text built so far.
-        to_string() -> string pure is
-            if _chunks? then
-                if _text? then
-                    _chunks.add(_text)
-                fi
+        to_string() -> string pure => _string_from_chars(_chars, 0, _length)
 
-                _text = Ghul.Internal.STRING_JOINER.join(_chunks)
-                _chunks = null
+        _INITIAL_CAPACITY: int static => 16
+
+        // Makes room for `needed` code units, growing by about double.
+        _ensure(needed: int) is
+            if needed <= _chars.count then
+                return
             fi
 
-            return _string_concat(_text, "")
+            let grown = Ghul._array_new[char](Ghul._grown_capacity(_chars.count, needed))
+            let i mut = 0
+
+            while i < _length do
+                Ghul._array_set(grown, i, _chars[i])
+                i = i + 1
+            od
+
+            _chars = grown
         si
 
-        _TAIL_LIMIT: int static => 128
+        _char_at(index: int) -> char is
+            _check_index(index)
 
-        // Makes `text` all there is.
-        _replace(text: string) is
-            _text = text
-            _chunks = null
-            _length = text.length
+            return _chars[index]
+        si
+
+        _check_index(index: int) is
+            if index < 0 \/ index >= _length then
+                throw Ghul.ArgumentOutOfRangeException("index")
+            fi
         si
     si
 si

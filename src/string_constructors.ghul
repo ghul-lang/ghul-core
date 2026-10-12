@@ -6,17 +6,7 @@ namespace Ghul.Internal is
         ///
         /// - chars: the code units
         @intrinsic("constructor.from_chars")
-        from_chars(chars: char[]) -> string static pure is
-            let units = Ghul._array_new[string](chars.count)
-            let i mut = 0
-
-            while i < chars.count do
-                Ghul._array_set(units, i, _string_from_char(chars[i]))
-                i = i + 1
-            od
-
-            return STRING_JOINER.join(units)
-        si
+        from_chars(chars: char[]) -> string static pure => _string_from_chars(chars, 0, chars.count)
 
         /// A string holding `count` copies of `unit`.
         ///
@@ -50,36 +40,37 @@ namespace Ghul.Internal is
             return join(pieces)
         si
 
-        /// The strings of `parts` joined end to end, in order. `parts` is used
-        /// as working space and is not left as it was.
+        /// The strings of `parts` joined end to end, in order, in one copy.
         ///
         /// - parts: the strings to join
         join(parts: string[]) -> string static is
-            let count mut = parts.count
+            let total mut = 0
+            let i mut = 0
 
-            if count == 0 then
-                return ""
-            fi
-
-            while count > 1 do
-                let from mut = 0
-                let to mut = 0
-
-                while from + 1 < count do
-                    Ghul._array_set(parts, to, _string_concat(parts[from], parts[from + 1]))
-                    from = from + 2
-                    to = to + 1
-                od
-
-                if from < count then
-                    Ghul._array_set(parts, to, parts[from])
-                    to = to + 1
-                fi
-
-                count = to
+            while i < parts.count do
+                total = total + parts[i].length
+                i = i + 1
             od
 
-            return parts[0]
+            let chars = Ghul._array_new[char](total)
+            let at mut = 0
+
+            i = 0
+
+            while i < parts.count do
+                let part = parts[i]
+                let j mut = 0
+
+                while j < part.length do
+                    Ghul._array_set(chars, at + j, part[j])
+                    j = j + 1
+                od
+
+                at = at + part.length
+                i = i + 1
+            od
+
+            return _string_from_chars(chars, 0, total)
         si
     si
 si

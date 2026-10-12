@@ -51,4 +51,27 @@ namespace Ghul is
     // Stores `value` at `index` in `array`.
     @intrinsic("array.set")
     _array_set[E](array: E[], index: int, value: E)
+
+    // The number of elements to grow a backing array to, when it holds
+    // `current` and must hold at least `needed`: about double. Past a small
+    // size it is one of 2^k - 32, whatever an element's size, so that an
+    // array with its header fits a power-of-two block of the collector with
+    // the byte the collector adds to every allocation to spare. A request of
+    // exactly a power of two would take a block twice its size.
+    _grown_capacity(current: int, needed: int) -> int pure is
+        let doubled = if current < 4 then 4 else current * 2 fi
+        let target = if doubled < needed then needed else doubled fi
+
+        if target < 128 then
+            return target
+        fi
+
+        let power mut = 256
+
+        while power - 32 < target do
+            power = power * 2
+        od
+
+        return power - 32
+    si
 si

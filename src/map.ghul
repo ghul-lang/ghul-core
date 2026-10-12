@@ -324,7 +324,7 @@ namespace Collections is
         // entry is reused before a new one is taken, so every entry below
         // `_used` is live and keeps its index.
         _grow() is
-            let size = _keys.count * 2;
+            let size = Ghul._grown_capacity(_keys.count, _keys.count + 1);
 
             let hashes = _hashes;
             let keys = _keys;

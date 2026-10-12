@@ -398,13 +398,7 @@ namespace Collections is
                 return;
             fi
 
-            let size mut = if _items.count == 0 then 4 else _items.count * 2 fi;
-
-            if size < needed then
-                size = needed;
-            fi
-
-            let grown = Ghul._array_new[T](size);
+            let grown = Ghul._array_new[T](Ghul._grown_capacity(_items.count, needed));
             let i mut = 0;
 
             while i < _count do
