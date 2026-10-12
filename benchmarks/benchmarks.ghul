@@ -152,6 +152,21 @@ entry(args: string[]) is
         return total
     si)
 
+    time("map keys for", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+
+        while pass < 10 do
+            for k in int_map.keys do
+                total = total + long(k)
+            od
+
+            pass = pass + 1
+        od
+
+        return total
+    si)
+
     time("map string insert", () -> long is
         let map = MAP[string, int]()
         let i mut = 0
@@ -215,6 +230,21 @@ entry(args: string[]) is
         od
 
         return hits
+    si)
+
+    time("set for", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+
+        while pass < 10 do
+            for v in int_set do
+                total = total + long(v)
+            od
+
+            pass = pass + 1
+        od
+
+        return total
     si)
 
     let text = string.join(" ", names)
