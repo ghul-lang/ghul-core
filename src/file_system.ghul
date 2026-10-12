@@ -231,6 +231,13 @@ namespace IO is
             return bytes
         si
 
+        // A stream reading the file at `path`, over a copy of its bytes.
+        open_read(path: string) -> IO.Stream static is
+            let bytes = read(path)
+
+            return IO.MemoryStream(copy(bytes, 0, bytes.count), false)
+        si
+
         // Makes `bytes` the whole content of the file at `path`. The store
         // keeps `bytes` itself, so the caller passes an array no one else
         // holds.
@@ -397,6 +404,45 @@ namespace IO is
 
             throw _failure(_last_error(), full_path)
         si
+
+        // A stream reading the file at `path` from the host as it is read,
+        // as .NET's FileStream does, so a file with no end can be read in
+        // part.
+        open_read(path: string) -> IO.Stream static is
+            let full_path = full(path)
+            let descriptor = _open_read(full_path)
+
+            if descriptor < 0 then
+                throw _failure(_last_error(), full_path)
+            fi
+
+            return _HOST_READ_STREAM(descriptor, full_path)
+        si
+
+        // Reads at most `count` bytes of the file `descriptor` into `buffer`
+        // from `offset`, answering how many, which is zero at its end.
+        read_into(descriptor: int, buffer: ubyte[], offset: int, count: int, full_path: string) -> int static is
+            let got = _read_into(descriptor, buffer, offset, count)
+
+            if got < 0 then
+                throw _failure(_last_error(), full_path)
+            fi
+
+            return got
+        si
+
+        // Closes the file `descriptor`.
+        close(descriptor: int, full_path: string) static =>
+            _check(_close(descriptor), full_path)
+
+        @intrinsic("host.file_open_read")
+        _open_read(path: string) -> int static
+
+        @intrinsic("host.file_read_into")
+        _read_into(descriptor: int, bytes: ubyte[], offset: int, count: int) -> int static
+
+        @intrinsic("host.file_close")
+        _close(descriptor: int) -> int static
 
         // Makes `bytes` the whole content of the file at `path`.
         write(path: string, bytes: ubyte[]) static is
@@ -754,8 +800,7 @@ namespace IO is
         /// A stream reading the bytes of the file at `path`.
         ///
         /// - path: the file to read
-        open_read(path: string) -> Stream static =>
-            MemoryStream(read_all_bytes(path), false)
+        open_read(path: string) -> Stream static => _FILE_STORE.open_read(path)
 
         /// A stream writing the file at `path` from its start, creating it
         /// where it does not exist. Bytes beyond what is written are kept.
@@ -933,6 +978,52 @@ namespace IO is
         dispose() is
             flush()
             super.dispose()
+        si
+    si
+
+    // A stream reading a file on the host as it is read, over the file's
+    // open descriptor, which disposing the stream closes.
+    @IF.llvm()
+    class _HOST_READ_STREAM: Stream is
+        _descriptor: int
+        _full_path: string
+        _open: bool
+
+        init(descriptor: int, full_path: string) is
+            super.init()
+
+            _descriptor = descriptor
+            _full_path = full_path
+            _open = true
+        si
+
+        can_read: bool => _open
+
+        read(buffer: ubyte[], offset: int, count: int) -> int is
+            if !_open then
+                throw Ghul.ObjectDisposedException("Cannot access a closed file.")
+            fi
+
+            if offset < 0 then
+                throw Ghul.ArgumentOutOfRangeException("offset")
+            fi
+
+            if count < 0 then
+                throw Ghul.ArgumentOutOfRangeException("count")
+            fi
+
+            if buffer.count - offset < count then
+                throw Ghul.ArgumentException("Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.")
+            fi
+
+            return _FILE_STORE.read_into(_descriptor, buffer, offset, count, _full_path)
+        si
+
+        dispose() is
+            if _open then
+                _open = false
+                _FILE_STORE.close(_descriptor, _full_path)
+            fi
         si
     si
 
