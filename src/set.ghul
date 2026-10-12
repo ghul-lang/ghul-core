@@ -4,6 +4,11 @@ namespace Collections is
     class SET[T]: Set[T], MutableSet[T] is
         _map: MAP[T, bool];
 
+        // A null element is held here rather than in the map, which hashes
+        // every key: the set holds it as .NET's hash set does.
+        _has_null: bool;
+        _null: T;
+
         /// An empty set.
         init() is
             _map = MAP[T, bool]();
@@ -28,22 +33,46 @@ namespace Collections is
         si
 
         /// The number of elements.
-        count: int pure => _map.count;
+        count: int pure => _map.count + if _has_null then 1 else 0 fi;
 
         /// Adds `value`, answering whether the set did not already hold it.
         ///
         /// - value: the element to add
-        add(value: T) -> bool => _map.try_add(value, true);
+        add(value: T) -> bool is
+            if _is_null(value) then
+                if _has_null then
+                    return false;
+                fi
+
+                _has_null = true;
+                _null = value;
+
+                return true;
+            fi
+
+            return _map.try_add(value, true);
+        si
 
         /// Removes `value`, answering whether the set held it.
         ///
         /// - value: the element to remove
-        remove(value: T) -> bool => _map.remove(value);
+        remove(value: T) -> bool is
+            if _is_null(value) then
+                let had = _has_null;
+
+                _has_null = false;
+
+                return had;
+            fi
+
+            return _map.remove(value);
+        si
 
         /// Whether the set holds `value`.
         ///
         /// - value: the element to look for
-        contains(value: T) -> bool pure => _map.contains_key(value);
+        contains(value: T) -> bool pure =>
+            if _is_null(value) then _has_null else _map.contains_key(value) fi;
 
         /// Adds every element of `other` the set does not already hold.
         ///
@@ -135,9 +164,26 @@ namespace Collections is
         /// Removes every element.
         clear() is
             _map.clear();
+            _has_null = false;
         si
 
         /// An iterator over the elements.
-        iterator: Iterator[T] => _map.keys.iterator;
+        iterator: Iterator[T] is
+            if !_has_null then
+                return _map.keys.iterator;
+            fi
+
+            let all = LIST[T](_map.keys);
+
+            all.add(_null);
+
+            return all.iterator;
+        si
+
+        _is_null(value: T) -> bool pure is
+            let boxed: object? = value;
+
+            return !boxed?;
+        si
     si
 si
