@@ -244,8 +244,22 @@ namespace Collections is
             od
         si
 
+        // A null key hashes to zero, so a set can hold null in insertion order
+        // as .NET's hash set does.
         _hash(key: K) -> int =>
-            (if let comparer = _comparer then comparer.get_hash_code(key) else key.get_hash_code() fi) & 0x7FFF_FFFF;
+            if let comparer = _comparer then
+                comparer.get_hash_code(key) & 0x7FFF_FFFF
+            elif _is_null(key) then
+                0
+            else
+                key.get_hash_code() & 0x7FFF_FFFF
+            fi;
+
+        _is_null(key: K) -> bool pure is
+            let boxed: object? = key;
+
+            return !boxed?;
+        si
 
         _same(a: K, b: K) -> bool =>
             if let comparer = _comparer then comparer.equals(a, b) else a =~ b fi;

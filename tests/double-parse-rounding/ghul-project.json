@@ -1,0 +1,9 @@
+{
+    "name": "double-parse-rounding",
+    "targets": ["wasm", "llvm"],
+    "sources": ["*.ghul"],
+    "options": { "suppress": ["assembly-attribute-unmatched"] },
+    "dependencies": {
+        "ghul-core": { "path": "../.." }
+    }
+}
