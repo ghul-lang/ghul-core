@@ -82,6 +82,69 @@ namespace System.Numerics is
         log(value: Complex) -> Complex static =>
             Complex(Math.log(value.magnitude), Math.atan2(value.imaginary, value.real))
 
+        /// The base-10 logarithm of `value`.
+        ///
+        /// - value: the complex number
+        log10(value: Complex) -> Complex static => log(value) / Ghul.Math.log(10.0)
+
+        /// The logarithm of `value` in `base_value`.
+        ///
+        /// - value: the complex number
+        /// - base_value: the base
+        log(value: Complex, base_value: double) -> Complex static => log(value) / Ghul.Math.log(base_value)
+
+        /// The sine of `value`.
+        ///
+        /// - value: the angle, in radians
+        sin(value: Complex) -> Complex static =>
+            Complex(Math.sin(value.real) * Math.cosh(value.imaginary), Math.cos(value.real) * Math.sinh(value.imaginary))
+
+        /// The cosine of `value`.
+        ///
+        /// - value: the angle, in radians
+        cos(value: Complex) -> Complex static =>
+            Complex(Math.cos(value.real) * Math.cosh(value.imaginary), -Math.sin(value.real) * Math.sinh(value.imaginary))
+
+        /// The tangent of `value`.
+        ///
+        /// - value: the angle, in radians
+        tan(value: Complex) -> Complex static => sin(value) / cos(value)
+
+        /// The hyperbolic sine of `value`.
+        ///
+        /// - value: the complex number
+        sinh(value: Complex) -> Complex static =>
+            Complex(Math.sinh(value.real) * Math.cos(value.imaginary), Math.cosh(value.real) * Math.sin(value.imaginary))
+
+        /// The hyperbolic cosine of `value`.
+        ///
+        /// - value: the complex number
+        cosh(value: Complex) -> Complex static =>
+            Complex(Math.cosh(value.real) * Math.cos(value.imaginary), Math.sinh(value.real) * Math.sin(value.imaginary))
+
+        /// The hyperbolic tangent of `value`.
+        ///
+        /// - value: the complex number
+        tanh(value: Complex) -> Complex static => sinh(value) / cosh(value)
+
+        /// The angle whose sine is `value`.
+        ///
+        /// - value: the sine
+        asin(value: Complex) -> Complex static =>
+            -imaginary_one * log(imaginary_one * value + sqrt(one - value * value))
+
+        /// The angle whose cosine is `value`.
+        ///
+        /// - value: the cosine
+        acos(value: Complex) -> Complex static =>
+            -imaginary_one * log(value + imaginary_one * sqrt(one - value * value))
+
+        /// The angle whose tangent is `value`.
+        ///
+        /// - value: the tangent
+        atan(value: Complex) -> Complex static =>
+            Complex(0.0, 0.5) * (log(one - imaginary_one * value) - log(one + imaginary_one * value))
+
         /// The principal square root of `value`.
         ///
         /// - value: the complex number
