@@ -1,3 +1,7 @@
+// .NET's name for this type is kept, so source written against .NET
+// builds here unchanged.
+@@suppress("non-upper-snake-case-name")
+
 namespace System is
     use Ghul.RANDOM
 
