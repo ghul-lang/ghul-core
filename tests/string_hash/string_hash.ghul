@@ -1,6 +1,7 @@
 // Strings that are =~ hash alike, so a union with a string field
 // compares by its contents, even where the two strings are different
-// objects.
+// objects, and a string held as object equals another holding the same
+// code units.
 use IO.Std
 
 union Shape is
@@ -22,4 +23,9 @@ entry() is
 
     Std.write_line(if x =~ y then "same contents equal" else "same contents differ" fi)
     Std.write_line(if x =~ z then "different contents equal" else "different contents differ" fi)
+
+    let held: object = b
+
+    Std.write_line(if held.equals(a) then "a string held as object equals its contents" else "a string held as object differs" fi)
+    Std.write_line(if held.equals(cast object(1)) then "a string equals an int" else "a string differs from an int" fi)
 si
