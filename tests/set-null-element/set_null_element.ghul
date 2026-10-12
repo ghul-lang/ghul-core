@@ -20,4 +20,19 @@ entry() is
     names.clear()
 
     write_line("{names.count} {names.contains(null)}")
+
+    let ordered = Collections.SET[string?]()
+
+    ordered.add("first")
+    ordered.add(null)
+    ordered.add("last")
+
+    let text = Text.STRING_BUILDER()
+
+    for name in ordered do
+        text.append(if let n = name then n else "null" fi)
+        text.append(" ")
+    od
+
+    write_line(text.to_string().trim())
 si

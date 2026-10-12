@@ -274,7 +274,13 @@ namespace Ghul is
         let scale mut = 0
         let digits mut = 0
 
+        // Every digit, for the exact conversion where the mantissa above
+        // drops some or one floating-point operation would not round once.
+        let all_digits = Text.STRING_BUILDER()
+        let fraction_digits mut = 0
+
         while i < end /\ char.is_digit(text[i]) do
+            all_digits.append(text[i])
             _accumulate_digit(text[i], mantissa ref, significant ref, scale ref, false)
             digits = digits + 1
             i = i + 1
@@ -284,6 +290,8 @@ namespace Ghul is
             i = i + 1
 
             while i < end /\ char.is_digit(text[i]) do
+                all_digits.append(text[i])
+                fraction_digits = fraction_digits + 1
                 _accumulate_digit(text[i], mantissa ref, significant ref, scale ref, true)
                 digits = digits + 1
                 i = i + 1
@@ -293,6 +301,8 @@ namespace Ghul is
         if digits == 0 then
             return (1, 0.0)
         fi
+
+        let written_exponent mut = 0
 
         if i < end /\ (text[i] == 'e' \/ text[i] == 'E') then
             i = i + 1
@@ -322,13 +332,19 @@ namespace Ghul is
             od
 
             scale = scale + if exponent_negative then -exponent else exponent fi
+            written_exponent = if exponent_negative then -exponent else exponent fi
         fi
 
         if i != end then
             return (1, 0.0)
         fi
 
-        let magnitude = _scale(cast double(mantissa), scale)
+        let magnitude =
+            if significant <= 18 /\ mantissa <= 9007199254740992L /\ scale >= -22 /\ scale <= 22 /\ !_drops_digits(all_digits) then
+                _scale(cast double(mantissa), scale)
+            else
+                _exact(all_digits.to_string(), written_exponent - fraction_digits)
+            fi
 
         return (0, if is_negative then -magnitude else magnitude fi)
     si
@@ -378,6 +394,123 @@ namespace Ghul is
 
             result = if scale < 0 then result / power else result * power fi
             remaining = remaining - step
+        od
+
+        return result
+    si
+
+    // Whether the mantissa left out some of `digits`: it keeps 18
+    // significant digits.
+    _drops_digits(digits: Text.STRING_BUILDER) -> bool is
+        let kept mut = 0
+        let started mut = false
+
+        for c in digits.to_string() do
+            if c != '0' then
+                started = true
+            fi
+
+            if started then
+                kept = kept + 1
+            fi
+        od
+
+        return kept > 18
+    si
+
+    // The double nearest the decimal digits `text` times ten to the power
+    // `exponent`, ties to even, as .NET's parse gives it: the exact
+    // quotient is taken to 53 bits with the remainder deciding the
+    // rounding, then scaled by a power of two in steps that are each exact.
+    _exact(text: string, exponent: int) -> double is
+        let first mut = 0
+
+        while first < text.length /\ text[first] == '0' do
+            first = first + 1
+        od
+
+        if first == text.length then
+            return 0.0
+        fi
+
+        // A value this far outside the range of a double is infinity or
+        // zero without dividing.
+        let magnitude = text.length - first + exponent
+
+        if magnitude > 310 then
+            return 1.0e308 * 10.0
+        elif magnitude < -330 then
+            return 0.0
+        fi
+
+        let digits = bigint.parse(text.substring(first))
+
+        let numerator = if exponent > 0 then digits * bigint.pow(10n, exponent) else digits fi
+        let denominator = if exponent < 0 then bigint.pow(10n, -exponent) else 1n fi
+
+        // The binary exponent of the result's least significant bit: the
+        // quotient at this exponent holds 53 bits, or fewer for a subnormal.
+        let shift mut = cast int(numerator.get_bit_length() - denominator.get_bit_length()) - 53
+        let quotient mut = 0n
+        let remainder mut = 0n
+        let divisor mut = 1n
+
+        do
+            if shift < -1074 then
+                shift = -1074
+            fi
+
+            let scaled = if shift < 0 then numerator << -shift else numerator fi
+
+            divisor = if shift > 0 then denominator << shift else denominator fi
+            quotient = scaled / divisor
+            remainder = scaled - quotient * divisor
+
+            if _bits(quotient) > 53 then
+                shift = shift + 1
+            elif _bits(quotient) < 53 /\ shift > -1074 then
+                shift = shift - 1
+            else
+                break
+            fi
+        od
+
+        let twice = remainder << 1
+
+        if twice > divisor \/ (twice =~ divisor /\ !quotient.is_even) then
+            quotient = quotient + 1n
+
+            if _bits(quotient) > 53 then
+                quotient = quotient >> 1
+                shift = shift + 1
+            fi
+        fi
+
+        if shift > 971 then
+            return 1.0e308 * 10.0
+        fi
+
+        let significand = cast double(cast long(quotient))
+
+        if shift < -1000 then
+            return significand * _power_of_two(-1000) * _power_of_two(shift + 1000)
+        fi
+
+        return significand * _power_of_two(shift)
+    si
+
+    _bits(value: bigint) -> int => cast int(value.get_bit_length())
+
+    // Two to the power `exponent`, exact for any exponent from -1022 to
+    // 1023.
+    _power_of_two(exponent: int) -> double is
+        let result mut = 1.0
+        let factor = if exponent < 0 then 0.5 else 2.0 fi
+        let i mut = if exponent < 0 then -exponent else exponent fi
+
+        while i > 0 do
+            result = result * factor
+            i = i - 1
         od
 
         return result
