@@ -330,4 +330,9 @@ namespace Ghul.Intrinsics is
 
         return state.to_string()
     si
+
+    /// Renders `value` for display: a string reads as itself.
+    ///
+    /// - value: the string to render
+    $(value: string) -> string pure => value
 si
