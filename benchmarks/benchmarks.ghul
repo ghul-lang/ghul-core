@@ -1,0 +1,315 @@
+// Times core's collections, strings, string builder and pipes. The same
+// source builds for .NET, where the base class library answers, and for the
+// native target, where ghul-core does, so the two runs can be compared case
+// by case. Each case runs a few times and reports its fastest run, after one
+// unreported run to warm up a just-in-time compiler. The check value keeps a
+// case's work from being optimised away, and must agree between targets.
+use IO.Std.write_line
+use Ghul.Pipes
+use Collections.LIST
+use Collections.MAP
+use Collections.SET
+use Text.STRING_BUILDER
+use System.Diagnostics.Stopwatch
+
+time(name: string, case_body: () -> long) is
+    let check mut = case_body()
+    let best mut = long.max_value
+    let run mut = 0
+
+    while run < 5 do
+        let clock = Stopwatch.start_new()
+
+        check = case_body()
+        clock.stop()
+
+        if clock.elapsed_milliseconds < best then
+            best = clock.elapsed_milliseconds
+        fi
+
+        run = run + 1
+    od
+
+    write_line("{name}\t{best}\t{check}")
+si
+
+numbers(count: int) -> LIST[int] is
+    let result = LIST[int]()
+    let i mut = 0
+
+    while i < count do
+        result.add((i * 7919) % 1_000_003)
+        i = i + 1
+    od
+
+    return result
+si
+
+keys(count: int) -> LIST[string] is
+    let result = LIST[string]()
+    let i mut = 0
+
+    while i < count do
+        result.add("key-{i}")
+        i = i + 1
+    od
+
+    return result
+si
+
+entry(args: string[]) is
+    let scale = if args.count > 0 then int.parse(args[0]) else 1 fi
+    let count = 1_000_000 * scale
+    let values = numbers(count)
+    let names = keys(200_000 * scale)
+
+    time("list.add (grow)", () -> long is
+        let list = LIST[int]()
+        let i mut = 0
+
+        while i < count do
+            list.add(i)
+            i = i + 1
+        od
+
+        return long(list.count)
+    si)
+
+    time("list index", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+
+        while pass < 10 do
+            let i mut = 0
+
+            while i < values.count do
+                total = total + long(values[i])
+                i = i + 1
+            od
+
+            pass = pass + 1
+        od
+
+        return total
+    si)
+
+    time("list for", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+
+        while pass < 10 do
+            for v in values do
+                total = total + long(v)
+            od
+
+            pass = pass + 1
+        od
+
+        return total
+    si)
+
+    time("map int insert", () -> long is
+        let map = MAP[int, int]()
+
+        for v in values do
+            map[v] = v
+        od
+
+        return long(map.count)
+    si)
+
+    let int_map = MAP[int, int]()
+
+    for v in values do
+        int_map[v] = v
+    od
+
+    time("map int lookup", () -> long is
+        let total mut = 0L
+        let found mut = 0
+
+        for v in values do
+            if int_map.try_get_value(v, found ref) then
+                total = total + long(found)
+            fi
+        od
+
+        return total
+    si)
+
+    time("map int for", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+
+        while pass < 10 do
+            for pair in int_map do
+                total = total + long(pair.value)
+            od
+
+            pass = pass + 1
+        od
+
+        return total
+    si)
+
+    time("map string insert", () -> long is
+        let map = MAP[string, int]()
+        let i mut = 0
+
+        for name in names do
+            map[name] = i
+            i = i + 1
+        od
+
+        return long(map.count)
+    si)
+
+    let string_map = MAP[string, int]()
+    let index mut = 0
+
+    for name in names do
+        string_map[name] = index
+        index = index + 1
+    od
+
+    time("map string lookup", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+        let found mut = 0
+
+        while pass < 5 do
+            for name in names do
+                if string_map.try_get_value(name, found ref) then
+                    total = total + long(found)
+                fi
+            od
+
+            pass = pass + 1
+        od
+
+        return total
+    si)
+
+    time("set int add", () -> long is
+        let set = SET[int]()
+
+        for v in values do
+            set.add(v)
+        od
+
+        return long(set.count)
+    si)
+
+    let int_set = SET[int](values)
+
+    time("set int contains", () -> long is
+        let hits mut = 0L
+        let i mut = 0
+
+        while i < count do
+            if int_set.contains(i) then
+                hits = hits + 1L
+            fi
+
+            i = i + 1
+        od
+
+        return hits
+    si)
+
+    let text = string.join(" ", names)
+
+    time("string index_of", () -> long is
+        let total mut = 0L
+        let i mut = 0
+
+        while i < 200 do
+            total = total + long(text.index_of("key-{199_000 * scale - i}"))
+            i = i + 1
+        od
+
+        return total
+    si)
+
+    time("string substring", () -> long is
+        let total mut = 0L
+        let i mut = 0
+
+        while i < count do
+            total = total + long(text.substring(i % 1000, 16).length)
+            i = i + 1
+        od
+
+        return total
+    si)
+
+    time("string =~", () -> long is
+        let hits mut = 0L
+        let i mut = 1
+
+        while i < names.count do
+            if names[i] =~ names[i - 1] then
+                hits = hits + 1L
+            fi
+
+            if names[i] =~ names[i] then
+                hits = hits + 1L
+            fi
+
+            i = i + 1
+        od
+
+        return hits
+    si)
+
+    time("string concat", () -> long is
+        let total mut = 0L
+
+        for name in names do
+            total = total + long(string.concat(name, "-", name).length)
+        od
+
+        return total
+    si)
+
+    time("interpolation", () -> long is
+        let total mut = 0L
+        let i mut = 0
+
+        while i < count do
+            total = total + long("item {i} of {count}".length)
+            i = i + 1
+        od
+
+        return total
+    si)
+
+    time("string split", () -> long is
+        let total mut = 0L
+        let pass mut = 0
+
+        while pass < 5 do
+            total = total + long(text.split([' ']).count)
+            pass = pass + 1
+        od
+
+        return total
+    si)
+
+    time("builder append", () -> long is
+        let builder = STRING_BUILDER()
+        let i mut = 0
+
+        while i < count do
+            builder.append("x")
+            builder.append(i)
+            builder.append(',')
+            i = i + 1
+        od
+
+        return long(builder.to_string().length)
+    si)
+
+    time("pipe chain", () -> long =>
+        values |> filter(v => v % 3 == 0) |> map(v => long(v) * 2L) |> reduce(0L, (a, b) => a + b))
+si
