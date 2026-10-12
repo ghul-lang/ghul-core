@@ -16,6 +16,7 @@ entry() is
     write_line("long {same(-1L)} {(-1L).get_hash_code()} {(1L << 40).get_hash_code()}")
     write_line("ulong {same(0xFFFF_FFFF_0000_0001ul)} {0xFFFF_FFFF_0000_0001ul.get_hash_code()}")
     write_line("word {same(123w)} {(123w).get_hash_code()}")
+    write_line("uword {same(0xFFFF_FFFF_0000_0001uw)} {(0xFFFF_FFFF_0000_0001uw).get_hash_code()}")
     write_line("single {same(1.5s)} {(0.0s).get_hash_code() == (-0.0s).get_hash_code()} {(0.0s / 0.0s).get_hash_code()}")
     write_line("double {same(2.5)} {(0.0).get_hash_code() == (-0.0).get_hash_code()} {(0.0 / 0.0).get_hash_code() == (-(0.0 / 0.0)).get_hash_code()}")
 si

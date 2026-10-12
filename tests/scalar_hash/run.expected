@@ -9,5 +9,6 @@ uint true -294967296
 long true 0 256
 ulong true -2
 word true 123
+uword true -2
 single true true 0
 double true true true
