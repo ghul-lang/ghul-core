@@ -91,24 +91,38 @@ namespace System is
     /// A moment in time, counted in ticks of 100 nanoseconds since
     /// 0001-01-01T00:00:00, as .NET's `System.DateTime` counts it. The
     /// source-core targets know no time zone, so the time is always UTC.
-    struct DateTime is
+    struct DateTime: IFormattable is
         /// The moment in ticks of 100 nanoseconds since 0001-01-01T00:00:00.
         ticks: long
+
+        /// Whether the moment is in UTC, in local time, or neither.
+        kind: DateTimeKind
 
         /// The moment `ticks` ticks of 100 nanoseconds after 0001-01-01T00:00:00.
         ///
         /// - ticks: the moment
         init(ticks: long) is
             self.ticks = ticks
+            kind = DateTimeKind.UNSPECIFIED
+        si
+
+        /// The moment `ticks` ticks of 100 nanoseconds after 0001-01-01T00:00:00,
+        /// of the kind `kind`.
+        ///
+        /// - ticks: the moment
+        /// - kind: whether it is in UTC, local time or neither
+        init(ticks: long, kind: DateTimeKind) is
+            self.ticks = ticks
+            self.kind = kind
         si
 
         /// The current time. With no time zone to convert to, this is
-        /// `utc_now`.
-        now: DateTime static => utc_now
+        /// `utc_now` marked as local.
+        now: DateTime static => DateTime(utc_now.ticks, DateTimeKind.LOCAL)
 
         /// The current time, in UTC.
         utc_now: DateTime static =>
-            DateTime(_unix_epoch_ticks + cast long(_wall_clock_milliseconds() * 10_000.0))
+            DateTime(_unix_epoch_ticks + cast long(_wall_clock_milliseconds() * 10_000.0), DateTimeKind.UTC)
 
         /// The interval from `other` to this moment.
         ///
@@ -118,7 +132,7 @@ namespace System is
         /// The moment `interval` after this one.
         ///
         /// - interval: how far to move
-        add(interval: TimeSpan) -> DateTime => DateTime(ticks + interval.ticks)
+        add(interval: TimeSpan) -> DateTime => DateTime(ticks + interval.ticks, kind)
 
         /// How this moment is ordered against `other`: negative when it is
         /// the earlier, zero when they are the same, positive otherwise.
