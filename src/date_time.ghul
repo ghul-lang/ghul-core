@@ -468,9 +468,9 @@ namespace Ghul.Internal is
                     if run <= 2 then
                         result.append(_padded(moment.day, run))
                     elif run == 3 then
-                        result.append(_day_names[int(moment.day_of_week)].substring(0, 3))
+                        result.append(_day_names[cast int(moment.day_of_week)].substring(0, 3))
                     else
-                        result.append(_day_names[int(moment.day_of_week)])
+                        result.append(_day_names[cast int(moment.day_of_week)])
                     fi
                 elif c == 'H' then
                     result.append(_padded(moment.hour, Ghul.Math.min(run, 2)))
@@ -524,7 +524,7 @@ namespace Ghul.Internal is
         _padded(value: int, width: int) -> string static is
             let text = value.to_string()
 
-            return if text.length >= width then text else "{"0" * (width - text.length)}{text}" fi
+            return if text.length >= width then text else text.pad_left(width, '0') fi
         si
 
         _month_names: string[] static =>
