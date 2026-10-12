@@ -18,3 +18,6 @@ formatted/
 
 # per-target builds of a test, beside it
 .targets-*/
+
+# written by the text-and-files test
+tests/text-and-files/*.txt

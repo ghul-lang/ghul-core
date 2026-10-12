@@ -29,6 +29,10 @@ namespace Ghul is
         @intrinsic("object.get_type")
         get_type() -> Type pure =>
             _type_of(self);
+
+        /// A shallow copy of the object: a new object of the same type whose
+        /// fields hold what this one's hold.
+        memberwise_clone() -> object protected => _memberwise_clone(self);
     si
 
     @intrinsic("object.type_name")
@@ -36,4 +40,11 @@ namespace Ghul is
 
     @intrinsic("object.get_type")
     _type_of(value: object) -> Type pure
+
+    @intrinsic("object.memberwise_clone")
+    _memberwise_clone(value: object) -> object
+
+    // A hash of `value`'s identity, the same for as long as it lives.
+    @intrinsic("object.identity_hash")
+    _identity_hash(value: object) -> int pure
 si
