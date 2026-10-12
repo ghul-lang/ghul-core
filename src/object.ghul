@@ -2,6 +2,7 @@ namespace Ghul is
     partial object is
         /// The name of the object's type, unless the type gives text of its
         /// own.
+        @trusted_store_free()
         to_string() -> string =>
             _type_name(self);
 
