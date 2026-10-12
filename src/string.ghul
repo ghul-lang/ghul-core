@@ -50,4 +50,9 @@ namespace Ghul is
 
     @intrinsic("string.from_char")
     _string_from_char(unit: char) -> string pure
+
+    // A new string of the `count` code units of `chars` from `start` on, in
+    // one copy. The range is not checked.
+    @intrinsic("string.from_chars")
+    _string_from_chars(chars: char[], start: int, count: int) -> string pure
 si
