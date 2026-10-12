@@ -41,4 +41,8 @@ entry() is
     write_line("{TimeSpan.ticks_per_day} {TimeSpan.ticks_per_hour} {TimeSpan.ticks_per_minute} {TimeSpan.from_ticks(15L)}")
 
     write_line("{d =~ DateTime(2026, 9, 25, 13, 4, 5)} {d < d.add_ticks(1L)}")
+
+    let formattable: System.IFormattable = d
+
+    write_line(formattable.to_string("yyyy/MM", null))
 si

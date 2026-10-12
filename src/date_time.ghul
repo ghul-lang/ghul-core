@@ -207,6 +207,12 @@ namespace System is
         to_string(format: string?) -> string =>
             Ghul.Internal.DATE_FORMAT.write(self, _standard(format ?? ""))
 
+        /// The moment written in `format`, as `to_string(format)` writes it.
+        ///
+        /// - format: the format to write in
+        /// - format_provider: ignored; text follows the invariant culture
+        to_string(format: string?, format_provider: IFormatProvider?) -> string => to_string(format)
+
         /// The moment `text` writes, in the invariant culture: a date as
         /// `yyyy-MM-dd` or `MM/dd/yyyy`, optionally followed by a time as
         /// `HH:mm`, `HH:mm:ss` or `HH:mm:ss.fffffff`, after a space or a `T`.

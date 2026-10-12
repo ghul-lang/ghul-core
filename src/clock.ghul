@@ -91,7 +91,7 @@ namespace System is
     /// A moment in time, counted in ticks of 100 nanoseconds since
     /// 0001-01-01T00:00:00, as .NET's `System.DateTime` counts it. The
     /// source-core targets know no time zone, so the time is always UTC.
-    struct DateTime is
+    struct DateTime: IFormattable is
         /// The moment in ticks of 100 nanoseconds since 0001-01-01T00:00:00.
         ticks: long
 
