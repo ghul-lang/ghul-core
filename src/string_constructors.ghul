@@ -59,12 +59,8 @@ namespace Ghul.Internal is
 
             while i < parts.count do
                 let part = parts[i]
-                let j mut = 0
 
-                while j < part.length do
-                    Ghul._array_set(chars, at + j, part[j])
-                    j = j + 1
-                od
+                _string_copy_to(part, 0, chars, at, part.length)
 
                 at = at + part.length
                 i = i + 1
