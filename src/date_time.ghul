@@ -386,6 +386,54 @@ namespace System is
         /// - value: the length of the interval
         from_ticks(value: long) -> TimeSpan static => TimeSpan(value)
 
+        /// An interval of `days` days.
+        ///
+        /// - days: the length of the interval
+        from_days(days: int) -> TimeSpan static => TimeSpan(cast long(days) * 864_000_000_000L)
+
+        /// An interval of `hours` hours.
+        ///
+        /// - hours: the length of the interval
+        from_hours(hours: int) -> TimeSpan static => TimeSpan(cast long(hours) * 36_000_000_000L)
+
+        /// An interval of `minutes` minutes.
+        ///
+        /// - minutes: the length of the interval
+        from_minutes(minutes: long) -> TimeSpan static => TimeSpan(minutes * 600_000_000L)
+
+        /// An interval of `seconds` seconds.
+        ///
+        /// - seconds: the length of the interval
+        from_seconds(seconds: long) -> TimeSpan static => TimeSpan(seconds * 10_000_000L)
+
+        /// The interval written in `format`: `c`, `g` or `G`, .NET's standard
+        /// formats as the invariant culture spells them, or a custom format of
+        /// `d`, `hh`, `mm`, `ss` and `fff` and the like, with `\` escapes and
+        /// quoted text copied as they are.
+        ///
+        /// - format: the format to write in
+        to_string(format: string?) -> string => Ghul.Internal.TIME_SPAN_TEXT.write(self, format ?? "")
+
+        /// The interval written in `format`, as `to_string(format)` writes it.
+        ///
+        /// - format: the format to write in
+        /// - format_provider: ignored; text follows the invariant culture
+        to_string(format: string?, format_provider: IFormatProvider?) -> string => to_string(format)
+
+        /// The interval `text` writes, as `[-][d.]hh:mm[:ss[.fffffff]]` or as
+        /// a whole number of days, with white space around it.
+        ///
+        /// - text: the text to read
+        parse(text: string) -> TimeSpan static => Ghul.Internal.TIME_SPAN_TEXT.parse(text.trim())
+
+        /// The interval `text` writes in the custom format `format`.
+        ///
+        /// - text: the text to read
+        /// - format: the custom format it is written in
+        /// - format_provider: ignored; text follows the invariant culture
+        parse_exact(text: string, format: string, format_provider: IFormatProvider?) -> TimeSpan static =>
+            Ghul.Internal.TIME_SPAN_TEXT.parse_exact(text, format)
+
         /// The whole days in the interval.
         days: int => cast int(ticks / 864_000_000_000L)
 
@@ -654,6 +702,243 @@ namespace Ghul.Internal is
 
         _fail(text: string) static is
             throw Ghul.FormatException("the string {text} was not recognized as a valid date")
+        si
+    si
+
+    // Writes and reads a TimeSpan as text under the invariant culture.
+    class TIME_SPAN_TEXT is
+        write(span: System.TimeSpan, format: string) -> string static is
+            if format.length == 0 \/ format =~ "c" \/ format =~ "t" \/ format =~ "T" then
+                return span.to_string()
+            fi
+
+            let negative = span.ticks < 0L
+            let magnitude = if negative then -span.ticks else span.ticks fi
+            let days = magnitude / 864_000_000_000L
+            let hours = cast int((magnitude / 36_000_000_000L) % 24L)
+            let minutes = cast int((magnitude / 600_000_000L) % 60L)
+            let seconds = cast int((magnitude / 10_000_000L) % 60L)
+            let fraction = "{magnitude % 10_000_000L + 10_000_000L}".substring(1)
+            let sign = if negative then "-" else "" fi
+
+            if format =~ "g" then
+                let day_part = if days > 0L then "{days}:" else "" fi
+                let trimmed = fraction.trim_end('0')
+                let fraction_part = if trimmed.length > 0 then ".{trimmed}" else "" fi
+
+                return "{sign}{day_part}{hours}:{_padded(minutes, 2)}:{_padded(seconds, 2)}{fraction_part}"
+            fi
+
+            if format =~ "G" then
+                return "{sign}{days}:{_padded(hours, 2)}:{_padded(minutes, 2)}:{_padded(seconds, 2)}.{fraction}"
+            fi
+
+            let result = Text.STRING_BUILDER()
+            let i mut = 0
+
+            while i < format.length do
+                let c = format[i]
+                let run mut = 1
+
+                while i + run < format.length /\ format[i + run] == c do
+                    run = run + 1
+                od
+
+                if c == 'd' then
+                    let text = "{days}"
+
+                    result.append(if text.length >= run then text else text.pad_left(run, '0') fi)
+                elif c == 'h' then
+                    result.append(_padded(hours, run))
+                elif c == 'm' then
+                    result.append(_padded(minutes, run))
+                elif c == 's' then
+                    result.append(_padded(seconds, run))
+                elif c == 'f' then
+                    result.append(fraction.substring(0, Ghul.Math.min(run, 7)))
+                elif c == 'F' then
+                    result.append(fraction.substring(0, Ghul.Math.min(run, 7)).trim_end('0'))
+                elif c == '\\' /\ i + 1 < format.length then
+                    result.append(format[i + 1])
+                    run = 2
+                elif c == '\'' \/ c == '"' then
+                    let close = format.index_of(c, i + 1)
+
+                    if close < 0 then
+                        throw Ghul.FormatException("the format {format} has an unclosed quote")
+                    fi
+
+                    result.append(format.substring(i + 1, close - i - 1))
+                    run = close - i + 1
+                elif c == '%' then
+                    run = 1
+                else
+                    throw Ghul.FormatException("the format {format} has a character it must escape")
+                fi
+
+                i = i + run
+            od
+
+            return result.to_string()
+        si
+
+        parse(text: string) -> System.TimeSpan static is
+            let negative = text.starts_with("-")
+            let body = if negative then text.substring(1) else text fi
+
+            if body.length == 0 then
+                _fail(text)
+            fi
+
+            let colon = body.index_of(':')
+            let ticks mut = 0L
+
+            if colon < 0 then
+                ticks = cast long(_whole(body, text)) * 864_000_000_000L
+            else
+                let dot = body.index_of('.')
+                let days = if dot >= 0 /\ dot < colon then _whole(body.substring(0, dot), text) else 0 fi
+                let time = if dot >= 0 /\ dot < colon then body.substring(dot + 1) else body fi
+                let parts = time.split(':')
+
+                if parts.count < 2 \/ parts.count > 3 then
+                    _fail(text)
+                fi
+
+                let hours = _whole(parts[0], text)
+                let minutes = _whole(parts[1], text)
+                let seconds_text = if parts.count == 3 then parts[2] else "0" fi
+                let point = seconds_text.index_of('.')
+                let seconds = _whole(if point >= 0 then seconds_text.substring(0, point) else seconds_text fi, text)
+                let fraction = if point >= 0 then _fraction(seconds_text.substring(point + 1), text) else 0L fi
+
+                if hours > 23 \/ minutes > 59 \/ seconds > 59 then
+                    throw Ghul.OverflowException("the time span {text} has a part out of range")
+                fi
+
+                ticks = (((cast long(days) * 24L + cast long(hours)) * 60L + cast long(minutes)) * 60L + cast long(seconds)) * 10_000_000L + fraction
+            fi
+
+            return System.TimeSpan(if negative then -ticks else ticks fi)
+        si
+
+        parse_exact(text: string, format: string) -> System.TimeSpan static is
+            let days mut = 0L
+            let hours mut = 0L
+            let minutes mut = 0L
+            let seconds mut = 0L
+            let fraction mut = 0L
+            let at mut = 0
+            let i mut = 0
+
+            while i < format.length do
+                let c = format[i]
+                let run mut = 1
+
+                while i + run < format.length /\ format[i + run] == c do
+                    run = run + 1
+                od
+
+                if c == 'd' \/ c == 'h' \/ c == 'm' \/ c == 's' then
+                    let most = if c == 'd' then 8 else 2 fi
+                    let start = at
+
+                    while at < text.length /\ at - start < most /\ text[at] >= '0' /\ text[at] <= '9' do
+                        at = at + 1
+                    od
+
+                    if at - start < (if c == 'd' then run else Ghul.Math.min(run, 2) fi) then
+                        _fail(text)
+                    fi
+
+                    let value = cast long(int.parse(text.substring(start, at - start)))
+
+                    if c == 'd' then
+                        days = value
+                    elif c == 'h' then
+                        hours = value
+                    elif c == 'm' then
+                        minutes = value
+                    else
+                        seconds = value
+                    fi
+                elif c == 'f' \/ c == 'F' then
+                    let start = at
+
+                    while at < text.length /\ at - start < run /\ text[at] >= '0' /\ text[at] <= '9' do
+                        at = at + 1
+                    od
+
+                    if c == 'f' /\ at - start < run then
+                        _fail(text)
+                    fi
+
+                    fraction = if at > start then _fraction(text.substring(start, at - start), text) else 0L fi
+                else
+                    let literal =
+                        if c == '\\' /\ i + 1 < format.length then
+                            run = 2
+                            format.substring(i + 1, 1)
+                        elif c == '\'' \/ c == '"' then
+                            let close = format.index_of(c, i + 1)
+                            let end = if close < 0 then format.length else close fi
+
+                            run = end - i + 1
+                            format.substring(i + 1, end - i - 1)
+                        else
+                            throw Ghul.FormatException("the format {format} has a character it must escape")
+                        fi
+
+                    if !text.substring(at).starts_with(literal) then
+                        _fail(text)
+                    fi
+
+                    at = at + literal.length
+                fi
+
+                i = i + run
+            od
+
+            if at != text.length \/ hours > 23L \/ minutes > 59L \/ seconds > 59L then
+                _fail(text)
+            fi
+
+            return System.TimeSpan((((days * 24L + hours) * 60L + minutes) * 60L + seconds) * 10_000_000L + fraction)
+        si
+
+        _whole(text: string, whole: string) -> int static is
+            if text.length == 0 then
+                _fail(whole)
+            fi
+
+            for c in text do
+                if c < '0' \/ c > '9' then
+                    _fail(whole)
+                fi
+            od
+
+            return int.parse(text)
+        si
+
+        _fraction(text: string, whole: string) -> long static is
+            if text.length == 0 \/ text.length > 7 then
+                _fail(whole)
+            fi
+
+            for c in text do
+                if c < '0' \/ c > '9' then
+                    _fail(whole)
+                fi
+            od
+
+            return cast long(int.parse("{text}0000000".substring(0, 7)))
+        si
+
+        _padded(value: int, width: int) -> string static =>
+            if width <= 1 then "{value}" else "{value}".pad_left(width, '0') fi
+
+        _fail(text: string) static is
+            throw Ghul.FormatException("the string {text} was not recognized as a valid time span")
         si
     si
 si
