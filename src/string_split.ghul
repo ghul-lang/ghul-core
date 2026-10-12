@@ -27,6 +27,10 @@ namespace Ghul is
         /// - separators: the code units to split at
         /// - options: whether to trim the pieces and leave out empty ones
         split(separators: char[], options: StringSplitOptions) -> string[] pure is
+            if options == StringSplitOptions.NONE then
+                return _split_exact(separators)
+            fi
+
             let pieces = LIST[string]()
             let start mut = 0
             let i mut = 0
@@ -94,6 +98,47 @@ namespace Ghul is
             _add_piece(pieces, substring(start), options)
 
             return _to_array(pieces)
+        si
+
+        // Every piece between separators, into an array sized by counting
+        // the separators first, so no piece is copied twice.
+        _split_exact(separators: char[]) -> string[] pure is
+            let single = separators.count == 1
+            let only = if single then separators[0] else ' ' fi
+            let count mut = 1
+            let i mut = 0
+
+            while i < length do
+                let unit = self[i]
+
+                if (if single then unit == only else _is_separator(unit, separators) fi) then
+                    count = count + 1
+                fi
+
+                i = i + 1
+            od
+
+            let result = _array_new[string](count)
+            let start mut = 0
+            let next mut = 0
+
+            i = 0
+
+            while i < length do
+                let unit = self[i]
+
+                if (if single then unit == only else _is_separator(unit, separators) fi) then
+                    _array_set(result, next, _string_substring(self, start, i - start))
+                    next = next + 1
+                    start = i + 1
+                fi
+
+                i = i + 1
+            od
+
+            _array_set(result, next, _string_substring(self, start, length - start))
+
+            return result
         si
 
         /// The string's code units, as a new array.
