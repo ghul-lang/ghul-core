@@ -279,9 +279,6 @@ namespace Ghul is
     si
 
     // The hash of `value`, which is zero where it is absent.
-    _hash_of[T](value: T) -> int is
-        let boxed: object? = value
-
-        return if boxed? then boxed.get_hash_code() else 0 fi
-    si
+    _hash_of[T](value: T) -> int =>
+        if (cast object?(value))? then value.get_hash_code() else 0 fi
 si
