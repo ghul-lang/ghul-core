@@ -1,7 +1,7 @@
 bool true true 1
-byte true 255
+byte true -1
 ubyte true 200
-short true 65534
+short true -2
 ushort true 60000
 char true 65
 int true -7 42

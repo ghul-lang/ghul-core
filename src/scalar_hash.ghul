@@ -1,11 +1,10 @@
 namespace Ghul is
     // Each scalar's own hash, so a hash table over a scalar key calls it
     // directly rather than boxing the key to reach object's. The values are
-    // the ones a boxed scalar answers: a type narrower than 32 bits is its
-    // value zero-extended, a 32-bit one is its value, a 64-bit one folds its
-    // halves together, and a floating value hashes its bits once zero of
-    // either sign and every NaN are made alike, so values `=~` reports equal
-    // hash alike.
+    // the ones a boxed scalar answers: an integer of 32 bits or fewer is its
+    // value, a 64-bit one folds its halves together, and a floating value
+    // hashes its bits once zero of either sign and every NaN are made alike,
+    // so values `=~` reports equal hash alike.
 
     partial bool is
         /// One for true, zero for false.
@@ -13,8 +12,8 @@ namespace Ghul is
     si
 
     partial byte is
-        /// The value's eight bits, as an unsigned number.
-        get_hash_code() -> int pure => int(cast ubyte(self))
+        /// The value.
+        get_hash_code() -> int pure => int(self)
     si
 
     partial ubyte is
@@ -23,8 +22,8 @@ namespace Ghul is
     si
 
     partial short is
-        /// The value's sixteen bits, as an unsigned number.
-        get_hash_code() -> int pure => int(cast ushort(self))
+        /// The value.
+        get_hash_code() -> int pure => int(self)
     si
 
     partial ushort is

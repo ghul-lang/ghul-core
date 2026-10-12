@@ -6,9 +6,9 @@ same[T](value: T) -> bool => value.get_hash_code() == cast object(value).get_has
 
 entry() is
     write_line("bool {same(true)} {same(false)} {true.get_hash_code()}")
-    write_line("byte {same(cast byte(100))} {cast byte(-1).get_hash_code()}")
+    write_line("byte {same(cast byte(-1))} {cast byte(-1).get_hash_code()}")
     write_line("ubyte {same(200ub)} {200ub.get_hash_code()}")
-    write_line("short {same(cast short(300))} {cast short(-2).get_hash_code()}")
+    write_line("short {same(cast short(-2))} {cast short(-2).get_hash_code()}")
     write_line("ushort {same(cast ushort(60000))} {cast ushort(60000).get_hash_code()}")
     write_line("char {same('A')} {'A'.get_hash_code()}")
     write_line("int {same(-7)} {(-7).get_hash_code()} {(42).get_hash_code()}")
