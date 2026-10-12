@@ -1,0 +1,7 @@
+{
+    "name": "core-benchmarks",
+    "kind": "program",
+    "targets": ["dotnet", "llvm"],
+    "sources": ["*.ghul"],
+    "options": { "suppress": ["assembly-attribute-unmatched"] }
+}
