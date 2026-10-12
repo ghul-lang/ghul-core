@@ -250,6 +250,19 @@ namespace IO is
             _file_written(full_path.substring(1), _BASE64.encode(bytes))
         si
 
+        // Adds `bytes` to the end of the file at `path`, making it where it
+        // does not exist.
+        append(path: string, bytes: ubyte[]) static is
+            let full_path = full(path)
+            let existing: ubyte[] mut
+
+            if _files.try_get_value(full_path, existing ref) then
+                write(full_path, concat(existing, bytes))
+            else
+                write(full_path, bytes)
+            fi
+        si
+
         // Hands every write to the host, which keeps the file where the
         // program can be seen to have written it: under Node, beneath the
         // working directory; in a page, to the page. The path is relative to
@@ -390,6 +403,14 @@ namespace IO is
             let full_path = full(path)
 
             _check(_write(full_path, bytes, false), full_path)
+        si
+
+        // Adds `bytes` to the end of the file at `path`, making it where it
+        // does not exist, without reading what is there.
+        append(path: string, bytes: ubyte[]) static is
+            let full_path = full(path)
+
+            _check(_write(full_path, bytes, true), full_path)
         si
 
         // Deletes the file at `full_path`, answering whether there was one.
@@ -881,11 +902,7 @@ namespace IO is
         si
 
         _append(path: string, bytes: ubyte[]) static =>
-            if exists(path) then
-                _FILE_STORE.write(path, _FILE_STORE.concat(_FILE_STORE.read(path), bytes))
-            else
-                _FILE_STORE.write(path, bytes)
-            fi
+            _FILE_STORE.append(path, bytes)
 
         _lines(contents: Collections.Iterable[string]) -> string static is
             let text = Text.STRING_BUILDER()
@@ -1252,9 +1269,13 @@ namespace IO is
     /// the writer is flushed or closed.
     @suppress("non-upper-snake-case-name")
     class StreamWriter: TextWriter is
+        // The first flush makes the file `_start` followed by the text, and
+        // each later one adds only the text written since, so what the
+        // writer holds is never more than one flush's worth.
         _path: string
         _start: ubyte[]
         _text: Text.STRING_BUILDER
+        _is_written: bool
 
         /// Whether every write is flushed to the file straight away.
         auto_flush: bool public
@@ -1286,8 +1307,19 @@ namespace IO is
             fi
         si
 
-        flush() =>
-            _FILE_STORE.write(_path, _FILE_STORE.concat(_start, _UTF8.encode(_text.to_string())))
+        flush() is
+            let bytes = _UTF8.encode(_text.to_string())
+
+            if !_is_written then
+                _FILE_STORE.write(_path, _FILE_STORE.concat(_start, bytes))
+                _start = Ghul._array_new[ubyte](0)
+                _is_written = true
+            elif bytes.count > 0 then
+                _FILE_STORE.append(_path, bytes)
+            fi
+
+            _text.clear()
+        si
 
         /// Flushes the writer and releases it.
         close() =>
