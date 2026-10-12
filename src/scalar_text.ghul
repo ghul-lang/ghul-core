@@ -88,17 +88,19 @@ namespace Ghul is
                 return "0"
             fi
 
-            let text mut = ""
+            // The digits come out lowest first, so they fill a buffer from its
+            // end and the text is copied out of it once.
+            let digits = Ghul._array_new[char](20)
+            let at mut = 20
             let rest mut = self
 
             while !(rest == 0UL) do
-                let digit = cast int(rest % 10UL)
-
-                text = _string_concat(_string_from_char(cast char(48 + digit)), text)
+                at = at - 1
+                Ghul._array_set(digits, at, cast char(48 + cast int(rest % 10UL)))
                 rest = rest / 10UL
             od
 
-            return text
+            return _string_from_chars(digits, at, 20 - at)
         si
     si
 
@@ -109,11 +111,13 @@ namespace Ghul is
                 return "0"
             fi
 
-            let text mut = ""
+            let digits = Ghul._array_new[char](20)
+            let at mut = 20
             let rest mut = self
 
-            // The digits come out lowest first. A negative value's
-            // remainders are negative too, so each is turned to its
+            // The digits come out lowest first, so they fill a buffer from
+            // its end and the text is copied out of it once. A negative
+            // value's remainders are negative too, so each is turned to its
             // magnitude rather than the value as a whole, which has no
             // positive counterpart at its minimum.
             while !(rest == 0L) do
@@ -123,15 +127,17 @@ namespace Ghul is
                     digit = -digit
                 fi
 
-                text = _string_concat(_string_from_char(cast char(48 + digit)), text)
+                at = at - 1
+                Ghul._array_set(digits, at, cast char(48 + digit))
                 rest = rest / 10L
             od
 
             if self < 0L then
-                text = _string_concat("-", text)
+                at = at - 1
+                Ghul._array_set(digits, at, '-')
             fi
 
-            return text
+            return _string_from_chars(digits, at, 20 - at)
         si
     si
 

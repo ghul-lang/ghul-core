@@ -40,12 +40,7 @@ namespace Text is
 
             _ensure(_length + count)
 
-            let i mut = 0
-
-            while i < count do
-                Ghul._array_set(_chars, _length + i, text[i])
-                i = i + 1
-            od
+            _string_copy_to(text, 0, _chars, _length, count)
 
             _length = _length + count
 
