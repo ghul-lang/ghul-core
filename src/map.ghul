@@ -229,11 +229,7 @@ namespace Collections is
                 key.get_hash_code() & 0x7FFF_FFFF
             fi;
 
-        _is_null(key: K) -> bool pure is
-            let boxed: object? = key;
-
-            return !boxed?;
-        si
+        _is_null(key: K) -> bool pure => !(cast object?(key))?;
 
         _same(a: K, b: K) -> bool =>
             if let comparer = _comparer then comparer.equals(a, b) else a =~ b fi;
