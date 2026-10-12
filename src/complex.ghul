@@ -6,7 +6,8 @@ namespace System.Numerics is
     use Ghul.Math
 
     /// A complex number with `double` parts, as .NET's
-    /// `System.Numerics.Complex` is, computed the way .NET computes it.
+    /// `System.Numerics.Complex` is, computed the way .NET computes it. A real
+    /// number `x` is the complex number `Complex(x, 0.0)`.
     struct Complex is
         /// The real part.
         real: double
