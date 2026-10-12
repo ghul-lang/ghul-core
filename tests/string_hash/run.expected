@@ -3,3 +3,5 @@ hello and world differ
 empty hashes alike
 same contents equal
 different contents differ
+a string held as object equals its contents
+a string differs from an int

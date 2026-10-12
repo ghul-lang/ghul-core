@@ -28,6 +28,13 @@ namespace Ghul is
             return hash
         si
 
+        /// Whether `other` is a string holding the same code units, as .NET's
+        /// `Equals` has it, so a string held as `object` compares by content.
+        ///
+        /// - other: the object to compare with
+        equals(other: object?) -> bool pure =>
+            if let s: string = other then self =~ s else false fi
+
         /// The string itself.
         to_string() -> string pure => self
     si
