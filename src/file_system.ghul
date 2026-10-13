@@ -58,6 +58,21 @@ namespace IO is
             return if slash <= 0 then "/" else full_path.substring(0, slash) fi
         si
 
+        // Those of `paths`, all below the directory `full_path`, that are
+        // directly in it.
+        _direct(paths: Collections.LIST[string], full_path: string) -> Collections.LIST[string] static is
+            let skip = if full_path =~ "/" then 1 else full_path.length + 1 fi
+            let found = Collections.LIST[string]()
+
+            for path in paths do
+                if path.index_of('/', skip) < 0 then
+                    found.add(path)
+                fi
+            od
+
+            return found
+        si
+
         _sorted(paths: Collections.Iterable[string]) -> Collections.LIST[string] static is
             let result = Collections.LIST[string](paths)
 
@@ -323,6 +338,14 @@ namespace IO is
             return _sorted(found)
         si
 
+        // The files directly in `full_path`, by full path.
+        files_in(full_path: string) -> Collections.LIST[string] static =>
+            _direct(files_under(full_path), full_path)
+
+        // The directories directly in `full_path`, by full path.
+        directories_in(full_path: string) -> Collections.LIST[string] static =>
+            _direct(directories_under(full_path), full_path)
+
         forget_directory(full_path: string) static =>
             _directories.remove(full_path)
 
@@ -515,6 +538,14 @@ namespace IO is
 
             return _sorted(found)
         si
+
+        // The files directly in `full_path`, by full path.
+        files_in(full_path: string) -> Collections.LIST[string] static =>
+            _sorted(_listed(full_path, false))
+
+        // The directories directly in `full_path`, by full path.
+        directories_in(full_path: string) -> Collections.LIST[string] static =>
+            _sorted(_listed(full_path, true))
 
         // Adds the files, or the directories, at every level below
         // `directory` to `found`.
@@ -1072,10 +1103,7 @@ namespace IO is
                 throw _FILE_STORE.missing_part(full_path)
             fi
 
-            let files = _FILE_STORE.files_under(full_path)
-            let directories = _FILE_STORE.directories_under(full_path)
-
-            if !recursive /\ (files.count > 0 \/ directories.count > 0) then
+            if !recursive /\ (_FILE_STORE.files_in(full_path).count > 0 \/ _FILE_STORE.directories_in(full_path).count > 0) then
                 throw IOException("Directory not empty : '{full_path}'")
             fi
 
@@ -1182,13 +1210,20 @@ namespace IO is
             fi
 
             let found = Collections.LIST[string]()
+            let top_only = option == SearchOption.TOP_DIRECTORY_ONLY
 
             if files then
-                found.add_range(_FILE_STORE.files_under(full_path))
+                found.add_range(
+                    if top_only then _FILE_STORE.files_in(full_path) else _FILE_STORE.files_under(full_path) fi)
             fi
 
             if directories then
-                found.add_range(_FILE_STORE.directories_under(full_path))
+                found.add_range(
+                    if top_only then
+                        _FILE_STORE.directories_in(full_path)
+                    else
+                        _FILE_STORE.directories_under(full_path)
+                    fi)
             fi
 
             found.sort((a: string, b: string) -> int => string.compare_ordinal(a, b))

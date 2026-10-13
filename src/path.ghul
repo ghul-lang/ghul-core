@@ -150,6 +150,10 @@ namespace IO is
         ///
         /// - path: the path to resolve
         get_full_path(path: string) -> string static pure is
+            if is_path_rooted(path) /\ _is_resolved(path) then
+                return path
+            fi
+
             let rooted = if is_path_rooted(path) then path else combine(Directory.get_current_directory(), path) fi
             let parts = LIST[string]()
 
@@ -172,6 +176,30 @@ namespace IO is
             let result = "/{string.join("/", parts)}"
 
             return if path.ends_with('/') /\ result.length > 1 then "{result}/" else result fi
+        si
+
+        // Whether the rooted `path` is already as get_full_path would answer
+        // it: no empty part, and no `.` or `..` part.
+        _is_resolved(path: string) -> bool static pure is
+            let i mut = 1
+
+            while i < path.length do
+                let start = i
+
+                while i < path.length /\ path[i] != '/' do
+                    i = i + 1
+                od
+
+                let length = i - start
+
+                if length == 0 \/ (path[start] == '.' /\ (length == 1 \/ (length == 2 /\ path[start + 1] == '.'))) then
+                    return false
+                fi
+
+                i = i + 1
+            od
+
+            return true
         si
 
         /// The path that leads from the directory `relative_to` to `path`.
