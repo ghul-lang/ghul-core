@@ -1,12 +1,13 @@
 namespace IO is
-    // The wasm target reads no host file system. Files and directories live
-    // in memory for as long as the program runs: it starts with the root
-    // directory, which is also the current directory, and the files the host
-    // supplied, and sees those and what it has written. Every write is also
-    // handed to the host, which keeps the file beneath its own working
-    // directory. Each member answers as .NET's does over a file system
-    // holding the same files, with the same exceptions where a path is
-    // missing. Path works on strings alone.
+    // Files and directories, as .NET reads and writes them. On the llvm
+    // target, and on the wasm target where the host offers a file system as
+    // Node does, they are the real ones, through the host's file
+    // operations. On the wasm target where it offers none, as in a page,
+    // they live in memory for as long as the program runs: the root
+    // directory, which is also the current directory, the files the host
+    // supplied, and what the program has written, each write also handed to
+    // the host. Each member answers as .NET's does, with the same exceptions
+    // where a path is missing. Path works on strings alone.
 
     /// Thrown when reading or writing a file or directory fails.
     class IOException: Ghul.Exception is
@@ -60,7 +61,7 @@ namespace IO is
 
         // Those of `paths`, all below the directory `full_path`, that are
         // directly in it.
-        _direct(paths: Collections.LIST[string], full_path: string) -> Collections.LIST[string] static is
+        direct(paths: Collections.LIST[string], full_path: string) -> Collections.LIST[string] static is
             let skip = if full_path =~ "/" then 1 else full_path.length + 1 fi
             let found = Collections.LIST[string]()
 
@@ -73,7 +74,7 @@ namespace IO is
             return found
         si
 
-        _sorted(paths: Collections.Iterable[string]) -> Collections.LIST[string] static is
+        sorted(paths: Collections.Iterable[string]) -> Collections.LIST[string] static is
             let result = Collections.LIST[string](paths)
 
             result.sort((a: string, b: string) -> int => string.compare_ordinal(a, b))
@@ -159,8 +160,8 @@ namespace IO is
     // The files and directories, keyed by full path. A directory exists
     // where it was created, or where a file or directory below it does; the
     // root always exists.
-    @IF.not.llvm()
-    partial _FILE_STORE is
+    @IF.wasm()
+    class _MEMORY_FILES is
         _files: Collections.MAP[string, ubyte[]] static
         _directories: Collections.SET[string] static
         _current: string static
@@ -174,7 +175,7 @@ namespace IO is
             let i mut = 0
 
             while i < count do
-                _files[full(_input_file_path(i))] = _bytes_of(_input_file_content(i))
+                _files[_FILE_STORE.full(_input_file_path(i))] = bytes_of(_input_file_content(i))
                 i = i + 1
             od
         si
@@ -192,7 +193,7 @@ namespace IO is
         @intrinsic("host.input_file_content")
         _input_file_content(index: int) -> string static
 
-        _bytes_of(text: string) -> ubyte[] static is
+        bytes_of(text: string) -> ubyte[] static is
             let bytes = Ghul._array_new[ubyte](text.length)
             let i mut = 0
 
@@ -232,7 +233,7 @@ namespace IO is
 
         // The bytes of the file at `path`, or FileNotFoundException.
         read(path: string) -> ubyte[] static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
             let bytes: ubyte[] mut
 
             if !_files.try_get_value(full_path, bytes ref) then
@@ -250,21 +251,21 @@ namespace IO is
         open_read(path: string) -> IO.Stream static is
             let bytes = read(path)
 
-            return IO.MemoryStream(copy(bytes, 0, bytes.count), false)
+            return IO.MemoryStream(_FILE_STORE.copy(bytes, 0, bytes.count), false)
         si
 
         // Makes `bytes` the whole content of the file at `path`. The store
         // keeps `bytes` itself, so the caller passes an array no one else
         // holds.
         write(path: string, bytes: ubyte[]) static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
 
             if is_directory(full_path) then
                 throw Ghul.UnauthorizedAccessException("Access to the path '{full_path}' is denied.")
             fi
 
-            if !is_directory(parent(full_path)) then
-                throw missing_part(full_path)
+            if !is_directory(_FILE_STORE.parent(full_path)) then
+                throw _FILE_STORE.missing_part(full_path)
             fi
 
             _files[full_path] = bytes
@@ -275,11 +276,11 @@ namespace IO is
         // Adds `bytes` to the end of the file at `path`, making it where it
         // does not exist.
         append(path: string, bytes: ubyte[]) static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
             let existing: ubyte[] mut
 
             if _files.try_get_value(full_path, existing ref) then
-                write(full_path, concat(existing, bytes))
+                write(full_path, _FILE_STORE.concat(existing, bytes))
             else
                 write(full_path, bytes)
             fi
@@ -304,7 +305,7 @@ namespace IO is
 
             while path !~ "/" do
                 _directories.add(path)
-                path = parent(path)
+                path = _FILE_STORE.parent(path)
             od
         si
 
@@ -326,25 +327,25 @@ namespace IO is
             // created, so it is listed too.
             for file in _files.keys do
                 if file.starts_with(prefix) then
-                    let path mut = parent(file)
+                    let path mut = _FILE_STORE.parent(file)
 
                     while path.length > full_path.length /\ path.starts_with(prefix) do
                         found.add(path)
-                        path = parent(path)
+                        path = _FILE_STORE.parent(path)
                     od
                 fi
             od
 
-            return _sorted(found)
+            return _FILE_STORE.sorted(found)
         si
 
         // The files directly in `full_path`, by full path.
         files_in(full_path: string) -> Collections.LIST[string] static =>
-            _direct(files_under(full_path), full_path)
+            _FILE_STORE.direct(files_under(full_path), full_path)
 
         // The directories directly in `full_path`, by full path.
         directories_in(full_path: string) -> Collections.LIST[string] static =>
-            _direct(directories_under(full_path), full_path)
+            _FILE_STORE.direct(directories_under(full_path), full_path)
 
         forget_directory(full_path: string) static =>
             _directories.remove(full_path)
@@ -381,10 +382,10 @@ namespace IO is
         si
 
         set_current(path: string) static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
 
             if !is_directory(full_path) then
-                throw missing_part(full_path)
+                throw _FILE_STORE.missing_part(full_path)
             fi
 
             _current = full_path
@@ -407,10 +408,109 @@ namespace IO is
 
     si
 
+    // On the wasm target the real file system where the host offers one,
+    // as Node does, and otherwise the files in memory, as in a page.
+    @IF.wasm()
+    partial _FILE_STORE is
+        current: string static =>
+            if _HOST_FILES.available then _HOST_FILES.current else _MEMORY_FILES.current fi
+
+        is_file(full_path: string) -> bool static =>
+            if _HOST_FILES.available then _HOST_FILES.is_file(full_path) else _MEMORY_FILES.is_file(full_path) fi
+
+        is_directory(full_path: string) -> bool static =>
+            if _HOST_FILES.available then _HOST_FILES.is_directory(full_path) else _MEMORY_FILES.is_directory(full_path) fi
+
+        read(path: string) -> ubyte[] static =>
+            if _HOST_FILES.available then _HOST_FILES.read(path) else _MEMORY_FILES.read(path) fi
+
+        open_read(path: string) -> IO.Stream static =>
+            if _HOST_FILES.available then _HOST_FILES.open_read(path) else _MEMORY_FILES.open_read(path) fi
+
+        write(path: string, bytes: ubyte[]) static is
+            if _HOST_FILES.available then _HOST_FILES.write(path, bytes) else _MEMORY_FILES.write(path, bytes) fi
+        si
+
+        append(path: string, bytes: ubyte[]) static is
+            if _HOST_FILES.available then _HOST_FILES.append(path, bytes) else _MEMORY_FILES.append(path, bytes) fi
+        si
+
+        remove(full_path: string) -> bool static =>
+            if _HOST_FILES.available then _HOST_FILES.remove(full_path) else _MEMORY_FILES.remove(full_path) fi
+
+        create_directory(full_path: string) static is
+            if _HOST_FILES.available then _HOST_FILES.create_directory(full_path) else _MEMORY_FILES.create_directory(full_path) fi
+        si
+
+        delete_directory(full_path: string) static is
+            if _HOST_FILES.available then _HOST_FILES.delete_directory(full_path) else _MEMORY_FILES.delete_directory(full_path) fi
+        si
+
+        move_directory(from: string, to: string) static is
+            if _HOST_FILES.available then _HOST_FILES.move_directory(from, to) else _MEMORY_FILES.move_directory(from, to) fi
+        si
+
+        set_current(path: string) static is
+            if _HOST_FILES.available then _HOST_FILES.set_current(path) else _MEMORY_FILES.set_current(path) fi
+        si
+
+        files_under(full_path: string) -> Collections.LIST[string] static =>
+            if _HOST_FILES.available then _HOST_FILES.files_under(full_path) else _MEMORY_FILES.files_under(full_path) fi
+
+        directories_under(full_path: string) -> Collections.LIST[string] static =>
+            if _HOST_FILES.available then _HOST_FILES.directories_under(full_path) else _MEMORY_FILES.directories_under(full_path) fi
+
+        files_in(full_path: string) -> Collections.LIST[string] static =>
+            if _HOST_FILES.available then _HOST_FILES.files_in(full_path) else _MEMORY_FILES.files_in(full_path) fi
+
+        directories_in(full_path: string) -> Collections.LIST[string] static =>
+            if _HOST_FILES.available then _HOST_FILES.directories_in(full_path) else _MEMORY_FILES.directories_in(full_path) fi
+    si
+
     // The files and directories of the real file system, through the native
     // host's file operations, as a .NET program reads and writes them.
     @IF.llvm()
     partial _FILE_STORE is
+        current: string static => _HOST_FILES.current
+
+        is_file(full_path: string) -> bool static => _HOST_FILES.is_file(full_path)
+
+        is_directory(full_path: string) -> bool static => _HOST_FILES.is_directory(full_path)
+
+        read(path: string) -> ubyte[] static => _HOST_FILES.read(path)
+
+        open_read(path: string) -> IO.Stream static => _HOST_FILES.open_read(path)
+
+        write(path: string, bytes: ubyte[]) static => _HOST_FILES.write(path, bytes)
+
+        append(path: string, bytes: ubyte[]) static => _HOST_FILES.append(path, bytes)
+
+        remove(full_path: string) -> bool static => _HOST_FILES.remove(full_path)
+
+        create_directory(full_path: string) static => _HOST_FILES.create_directory(full_path)
+
+        delete_directory(full_path: string) static => _HOST_FILES.delete_directory(full_path)
+
+        move_directory(from: string, to: string) static => _HOST_FILES.move_directory(from, to)
+
+        set_current(path: string) static => _HOST_FILES.set_current(path)
+
+        files_under(full_path: string) -> Collections.LIST[string] static => _HOST_FILES.files_under(full_path)
+
+        directories_under(full_path: string) -> Collections.LIST[string] static => _HOST_FILES.directories_under(full_path)
+
+        files_in(full_path: string) -> Collections.LIST[string] static => _HOST_FILES.files_in(full_path)
+
+        directories_in(full_path: string) -> Collections.LIST[string] static => _HOST_FILES.directories_in(full_path)
+    si
+
+    // The real file system, through the host's file operations: always on
+    // the llvm target, and on the wasm target where the host has one to
+    // offer, as Node does and a page does not. Only how a file's bytes cross
+    // to and from the host differs between the two, in the partial blocks
+    // below.
+    @IF.source_core()
+    class _HOST_FILES is
         current: string static => _current_directory()
 
         is_file(full_path: string) -> bool static => _kind(full_path) == 1
@@ -419,7 +519,7 @@ namespace IO is
 
         // The bytes of the file at `path`.
         read(path: string) -> ubyte[] static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
 
             if let bytes = _read(full_path) then
                 return bytes
@@ -428,48 +528,9 @@ namespace IO is
             throw _failure(_last_error(), full_path)
         si
 
-        // A stream reading the file at `path` from the host as it is read,
-        // as .NET's FileStream does, so a file with no end can be read in
-        // part.
-        open_read(path: string) -> IO.Stream static is
-            let full_path = full(path)
-            let descriptor = _open_read(full_path)
-
-            if descriptor < 0 then
-                throw _failure(_last_error(), full_path)
-            fi
-
-            return _HOST_READ_STREAM(descriptor, full_path)
-        si
-
-        // Reads at most `count` bytes of the file `descriptor` into `buffer`
-        // from `offset`, answering how many, which is zero at its end.
-        read_into(descriptor: int, buffer: ubyte[], offset: int, count: int, full_path: string) -> int static is
-            let got = _read_into(descriptor, buffer, offset, count)
-
-            if got < 0 then
-                throw _failure(_last_error(), full_path)
-            fi
-
-            return got
-        si
-
-        // Closes the file `descriptor`.
-        close(descriptor: int, full_path: string) static =>
-            _check(_close(descriptor), full_path)
-
-        @intrinsic("host.file_open_read")
-        _open_read(path: string) -> int static
-
-        @intrinsic("host.file_read_into")
-        _read_into(descriptor: int, bytes: ubyte[], offset: int, count: int) -> int static
-
-        @intrinsic("host.file_close")
-        _close(descriptor: int) -> int static
-
         // Makes `bytes` the whole content of the file at `path`.
         write(path: string, bytes: ubyte[]) static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
 
             _check(_write(full_path, bytes, false), full_path)
         si
@@ -477,7 +538,7 @@ namespace IO is
         // Adds `bytes` to the end of the file at `path`, making it where it
         // does not exist, without reading what is there.
         append(path: string, bytes: ubyte[]) static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
 
             _check(_write(full_path, bytes, true), full_path)
         si
@@ -512,10 +573,10 @@ namespace IO is
             _check(_rename(from, to), from)
 
         set_current(path: string) static is
-            let full_path = full(path)
+            let full_path = _FILE_STORE.full(path)
 
             if !is_directory(full_path) then
-                throw missing_part(full_path)
+                throw _FILE_STORE.missing_part(full_path)
             fi
 
             _check(_set_current(full_path), full_path)
@@ -527,7 +588,7 @@ namespace IO is
 
             _walk(full_path, found, false)
 
-            return _sorted(found)
+            return _FILE_STORE.sorted(found)
         si
 
         // Every directory below `full_path`, by full path.
@@ -536,16 +597,16 @@ namespace IO is
 
             _walk(full_path, found, true)
 
-            return _sorted(found)
+            return _FILE_STORE.sorted(found)
         si
 
         // The files directly in `full_path`, by full path.
         files_in(full_path: string) -> Collections.LIST[string] static =>
-            _sorted(_listed(full_path, false))
+            _FILE_STORE.sorted(_listed(full_path, false))
 
         // The directories directly in `full_path`, by full path.
         directories_in(full_path: string) -> Collections.LIST[string] static =>
-            _sorted(_listed(full_path, true))
+            _FILE_STORE.sorted(_listed(full_path, true))
 
         // Adds the files, or the directories, at every level below
         // `directory` to `found`.
@@ -596,7 +657,7 @@ namespace IO is
         _failure(code: int, full_path: string) -> Ghul.Exception static =>
             case code
             when 1 then FileNotFoundException("Could not find file '{full_path}'.")
-            when 2 then missing_part(full_path)
+            when 2 then _FILE_STORE.missing_part(full_path)
             when 3 then Ghul.UnauthorizedAccessException("Access to the path '{full_path}' is denied.")
             else IOException("An I/O error occurred with '{full_path}'.")
             esac
@@ -608,18 +669,11 @@ namespace IO is
         @intrinsic("host.file_kind")
         _kind(path: string) -> int static
 
-        // The whole file, or null with the reason in _last_error.
-        @intrinsic("host.file_read")
-        _read(path: string) -> ubyte[]? static
-
         @intrinsic("host.file_last_error")
         _last_error() -> int static
 
         // Each of these answers 0, or one of the codes _failure turns into
         // an exception.
-        @intrinsic("host.file_write")
-        _write(path: string, bytes: ubyte[], append: bool) -> int static
-
         @intrinsic("host.file_delete")
         _delete(path: string) -> int static
 
@@ -642,6 +696,104 @@ namespace IO is
 
         @intrinsic("host.directory_entry")
         _entry(index: int) -> string static
+    si
+
+    // On the llvm target a file's bytes cross to and from the host as an
+    // array of bytes, and a file being read is read as the reader asks.
+    @IF.llvm()
+    partial _HOST_FILES is
+        // A stream reading the file at `path` from the host as it is read,
+        // as .NET's FileStream does, so a file with no end can be read in
+        // part.
+        open_read(path: string) -> IO.Stream static is
+            let full_path = _FILE_STORE.full(path)
+            let descriptor = _open_read(full_path)
+
+            if descriptor < 0 then
+                throw _failure(_last_error(), full_path)
+            fi
+
+            return _HOST_READ_STREAM(descriptor, full_path)
+        si
+
+        // Reads at most `count` bytes of the file `descriptor` into `buffer`
+        // from `offset`, answering how many, which is zero at its end.
+        read_into(descriptor: int, buffer: ubyte[], offset: int, count: int, full_path: string) -> int static is
+            let got = _read_into(descriptor, buffer, offset, count)
+
+            if got < 0 then
+                throw _failure(_last_error(), full_path)
+            fi
+
+            return got
+        si
+
+        // Closes the file `descriptor`.
+        close(descriptor: int, full_path: string) static =>
+            _check(_close(descriptor), full_path)
+
+        @intrinsic("host.file_open_read")
+        _open_read(path: string) -> int static
+
+        @intrinsic("host.file_read_into")
+        _read_into(descriptor: int, bytes: ubyte[], offset: int, count: int) -> int static
+
+        @intrinsic("host.file_close")
+        _close(descriptor: int) -> int static
+
+        // The whole file, or null with the reason in _last_error.
+        @intrinsic("host.file_read")
+        _read(path: string) -> ubyte[]? static
+
+        @intrinsic("host.file_write")
+        _write(path: string, bytes: ubyte[], append: bool) -> int static
+    si
+
+    // On the wasm target a file's bytes cross to and from the host as a
+    // string holding one code unit for each byte, which is how the host can
+    // hand them over, and a file being read is read whole first.
+    @IF.wasm()
+    partial _HOST_FILES is
+        // Whether the host offers a file system: Node does, a page does not.
+        available: bool static => _available()
+
+        // A stream reading the file at `path`, over its bytes read whole.
+        open_read(path: string) -> IO.Stream static =>
+            IO.MemoryStream(read(path), false)
+
+        _read(path: string) -> ubyte[]? static is
+            if let text = _read_text(path) then
+                return _MEMORY_FILES.bytes_of(text)
+            fi
+
+            return null
+        si
+
+        _write(path: string, bytes: ubyte[], append: bool) -> int static =>
+            _write_text(path, _text_of(bytes), append)
+
+        _text_of(bytes: ubyte[]) -> string static is
+            let units = Ghul._array_new[char](bytes.count)
+            let i mut = 0
+
+            while i < bytes.count do
+                Ghul._array_set(units, i, cast char(cast int(bytes[i])))
+                i = i + 1
+            od
+
+            return string(units)
+        si
+
+        @intrinsic("host.file_system")
+        _available() -> bool static
+
+        // The whole file, one code unit for each byte, or null with the
+        // reason in _last_error.
+        @intrinsic("host.file_read_text")
+        _read_text(path: string) -> string? static
+
+        @intrinsic("host.file_write_text")
+        _write_text(path: string, content: string, append: bool) -> int static
     si
 
     // Bytes as standard base64 with padding.
@@ -1047,13 +1199,13 @@ namespace IO is
                 throw Ghul.ArgumentException("Offset and length were out of bounds for the array or count is greater than the number of elements from index to the end of the source collection.")
             fi
 
-            return _FILE_STORE.read_into(_descriptor, buffer, offset, count, _full_path)
+            return _HOST_FILES.read_into(_descriptor, buffer, offset, count, _full_path)
         si
 
         dispose() is
             if _open then
                 _open = false
-                _FILE_STORE.close(_descriptor, _full_path)
+                _HOST_FILES.close(_descriptor, _full_path)
             fi
         si
     si
