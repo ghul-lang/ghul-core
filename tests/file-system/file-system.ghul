@@ -1,7 +1,13 @@
 // Path takes paths apart and puts them together as .NET does on Linux, and
-// the in-memory file system answers as .NET does over the same files.
+// the file system, which under Node is the real one, answers as .NET does
+// over the same files. Paths the program prints are made relative to the
+// current directory, so the output does not depend on where it runs.
 
 use default
+
+let here = IO.Directory.get_current_directory()
+
+relative(path: string) -> string => path.replace("{here}/", "")
 
 for p in ["/a/b/c.txt", "a/b", "/", "", "c.tar.gz", "dir/", "/x", ".hidden", "noext."] do
     write_line("[{p}] name=[{IO.Path.get_file_name(p)}] stem=[{IO.Path.get_file_name_without_extension(p)}] ext=[{IO.Path.get_extension(p)}] has={IO.Path.has_extension(p)} dir=[{IO.Path.get_directory_name(p) ?? "null"}] rooted={IO.Path.is_path_rooted(p)}")
@@ -29,11 +35,11 @@ catch e: IO.FileNotFoundException
 yrt
 
 IO.File.write_all_text("notes.txt", "first\nsecond\r\nthird\rfourth\n")
-write_line("{IO.File.exists("notes.txt")} {IO.File.exists("/notes.txt")} {IO.File.exists("missing.txt")}")
+write_line("{IO.File.exists("notes.txt")} {IO.File.exists(IO.Path.get_full_path("notes.txt"))} {IO.File.exists("missing.txt")}")
 write_line(IO.File.read_all_lines("notes.txt") |> join("|"))
 IO.File.append_all_text("notes.txt", "fifth")
-write_line(IO.File.read_all_lines("/notes.txt") |> join("|"))
-write_line("{IO.FileInfo("notes.txt").length} {IO.FileInfo("notes.txt").full_name}")
+write_line(IO.File.read_all_lines(IO.Path.get_full_path("notes.txt")) |> join("|"))
+write_line("{IO.FileInfo("notes.txt").length} {relative(IO.FileInfo("notes.txt").full_name)}")
 
 IO.File.write_all_text("unicode.txt", "café € 😀")
 let encoded = IO.File.read_all_bytes("unicode.txt")
@@ -51,28 +57,28 @@ catch e: IO.DirectoryNotFoundException
     write_line("no directory: {e.message}")
 yrt
 
-IO.Directory.create_directory("out/frames")
-IO.File.write_all_text("out/frames/a.txt", "a")
-IO.File.write_all_text("out/frames/b.log", "b")
-IO.File.write_all_text("out/top.txt", "t")
-write_line("{IO.Directory.exists("out")} {IO.Directory.exists("out/frames")} {IO.Directory.exists("out/none")}")
-write_line(IO.Directory.get_files("out") |> join(" "))
-write_line(IO.Directory.get_files("out", "*.txt", IO.SearchOption.ALL_DIRECTORIES) |> join(" "))
-write_line(IO.Directory.get_directories("out") |> join(" "))
-write_line(IO.Directory.get_file_system_entries("/out/frames") |> join(" "))
+IO.Directory.create_directory("scratch/frames")
+IO.File.write_all_text("scratch/frames/a.txt", "a")
+IO.File.write_all_text("scratch/frames/b.log", "b")
+IO.File.write_all_text("scratch/top.txt", "t")
+write_line("{IO.Directory.exists("scratch")} {IO.Directory.exists("scratch/frames")} {IO.Directory.exists("scratch/none")}")
+write_line(IO.Directory.get_files("scratch") |> join(" "))
+write_line(IO.Directory.get_files("scratch", "*.txt", IO.SearchOption.ALL_DIRECTORIES) |> join(" "))
+write_line(IO.Directory.get_directories("scratch") |> join(" "))
+write_line(IO.Directory.get_file_system_entries("scratch/frames") |> join(" "))
 
 try
-    IO.Directory.delete("out")
+    IO.Directory.delete("scratch")
 catch e: IO.IOException
     write_line("not empty")
 yrt
 
-IO.File.copy("out/top.txt", "copy.txt")
+IO.File.copy("scratch/top.txt", "copy.txt")
 IO.File.move("copy.txt", "moved.txt")
 write_line("{IO.File.exists("copy.txt")} {IO.File.read_all_text("moved.txt")}")
 IO.File.delete("moved.txt")
-IO.Directory.delete("out", true)
-write_line("{IO.File.exists("moved.txt")} {IO.Directory.exists("out")}")
+IO.Directory.delete("scratch", true)
+write_line("{IO.File.exists("moved.txt")} {IO.Directory.exists("scratch")}")
 
 let writer = IO.File.create_text("log.txt")
 writer.write_line("one")
@@ -90,5 +96,5 @@ write_line("{input.length} {input.read_byte()} {input.read_byte()}")
 try
     IO.File.read_all_bytes("gone.bin")
 catch e: IO.FileNotFoundException
-    write_line("missing: {e.message}")
+    write_line("missing: {relative(e.message)}")
 yrt
