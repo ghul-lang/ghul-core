@@ -10,14 +10,14 @@
       "rollForward": false
     },
     "ghul.compiler": {
-      "version": "65.30.0",
+      "version": "65.33.0",
       "commands": [
         "ghul-compiler"
       ],
       "rollForward": false
     },
     "ghul.cli": {
-      "version": "0.56.1",
+      "version": "0.63.0",
       "commands": [
         "ghul"
       ],
