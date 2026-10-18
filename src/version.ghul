@@ -1,0 +1,136 @@
+namespace System is
+    /// A version number of two to four parts, `major.minor[.build[.revision]]`,
+    /// as .NET's `System.Version` reads, compares and writes one. A part that
+    /// is not given reads as -1, and orders before any given part.
+    class Version: Ghul.Comparable[Version], Ghul.Equatable[Version] is
+        /// The first part.
+        major: int
+
+        /// The second part.
+        minor: int
+
+        /// The third part, or -1 where there is none.
+        build: int
+
+        /// The fourth part, or -1 where there is none.
+        revision: int
+
+        /// The version `major.minor`.
+        ///
+        /// - major: the first part
+        /// - minor: the second part
+        init(major: int, minor: int) is
+            self.init(major, minor, -1, -1)
+        si
+
+        /// The version `major.minor.build`.
+        ///
+        /// - major: the first part
+        /// - minor: the second part
+        /// - build: the third part
+        init(major: int, minor: int, build: int) is
+            self.init(major, minor, build, -1)
+        si
+
+        /// The version `major.minor.build.revision`.
+        ///
+        /// - major: the first part
+        /// - minor: the second part
+        /// - build: the third part, or -1 for none
+        /// - revision: the fourth part, or -1 for none
+        init(major: int, minor: int, build: int, revision: int) is
+            self.major = major
+            self.minor = minor
+            self.build = build
+            self.revision = revision
+        si
+
+        /// The version `text` spells. Throws `Ghul.FormatException` where it
+        /// is not two to four non-negative whole numbers separated by dots.
+        ///
+        /// - text: the version to read
+        parse(text: string) -> Version static is
+            if let version = _read(text) then
+                return version
+            fi
+
+            throw Ghul.FormatException("'{text}' is not a version")
+        si
+
+        /// Whether `text` spells a version, setting `result` to it where it
+        /// does and to null where it does not.
+        ///
+        /// - text: the version to read
+        /// - result: set to the version read
+        try_parse(text: string?, result: Version? ref) -> bool static is
+            let version = if let t = text then _read(t) else null fi
+
+            result! = version
+
+            return version?
+        si
+
+        _read(text: string) -> Version? static is
+            let parts = text.trim().split('.')
+
+            if parts.count < 2 \/ parts.count > 4 then
+                return null
+            fi
+
+            let numbers = Collections.LIST[int]([-1, -1, -1, -1])
+            let i mut = 0
+
+            while i < parts.count do
+                let part = parts[i]
+
+                if part.length == 0 then
+                    return null
+                fi
+
+                let value mut = 0
+
+                for c in part do
+                    if c < '0' \/ c > '9' then
+                        return null
+                    fi
+
+                    value = value * 10 + (int(c) - int('0'))
+                od
+
+                numbers[i] = value
+                i = i + 1
+            od
+
+            return Version(numbers[0], numbers[1], numbers[2], numbers[3])
+        si
+
+        <>(other: Version) -> int pure is
+            if major != other.major then return if major < other.major then -1 else 1 fi fi
+            if minor != other.minor then return if minor < other.minor then -1 else 1 fi fi
+            if build != other.build then return if build < other.build then -1 else 1 fi fi
+            if revision != other.revision then return if revision < other.revision then -1 else 1 fi fi
+
+            return 0
+        si
+
+        =~(other: Version) -> bool pure =>
+            major == other.major /\ minor == other.minor /\ build == other.build /\ revision == other.revision
+
+        get_hash_code() -> int pure =>
+            ((major * 31 + minor) * 31 + build) * 31 + revision
+
+        /// The version as `major.minor`, with `.build` and `.revision` where
+        /// they are given.
+        to_string() -> string is
+            if build < 0 then
+                return "{major}.{minor}"
+            fi
+
+            if revision < 0 then
+                return "{major}.{minor}.{build}"
+            fi
+
+            return "{major}.{minor}.{build}.{revision}"
+        si
+    si
+si

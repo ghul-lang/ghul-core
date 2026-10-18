@@ -1,0 +1,211 @@
+@@IF.wasm()
+
+namespace System is
+    partial Environment is
+        /// The operating system's identifier for this process.
+        process_id: int static => _process_id()
+
+        /// The directory `folder` names for the user running the program.
+        ///
+        /// - folder: which directory
+        get_folder_path(folder: Environment_SpecialFolder) -> string static is
+            let home = _home_directory()
+
+            if OperatingSystem.is_windows() then
+                return
+                    case folder
+                    when Environment_SpecialFolder.APPLICATION_DATA then get_environment_variable("APPDATA") ?? IO.Path.join(home, "AppData/Roaming")
+                    when Environment_SpecialFolder.LOCAL_APPLICATION_DATA then get_environment_variable("LOCALAPPDATA") ?? IO.Path.join(home, "AppData/Local")
+                    else home
+                    esac
+            fi
+
+            return
+                case folder
+                when Environment_SpecialFolder.APPLICATION_DATA then _xdg("XDG_CONFIG_HOME", home, ".config")
+                when Environment_SpecialFolder.LOCAL_APPLICATION_DATA then _xdg("XDG_DATA_HOME", home, ".local/share")
+                else home
+                esac
+        si
+
+        _xdg(variable: string, home: string, fallback: string) -> string static is
+            let value = get_environment_variable(variable)
+
+            if value? /\ value.length > 0 then
+                return value
+            fi
+
+            return IO.Path.join(home, fallback)
+        si
+
+        @intrinsic("host.process_id")
+        _process_id() -> int static
+
+        @intrinsic("host.home_directory")
+        _home_directory() -> string static
+    si
+
+    /// A directory .NET names for the user running the program.
+    enum Environment_SpecialFolder is
+        APPLICATION_DATA = 26,
+        LOCAL_APPLICATION_DATA = 28,
+        USER_PROFILE = 40
+    si
+
+    /// Which operating system the program is running on.
+    class OperatingSystem is
+        /// Whether it is Windows.
+        is_windows() -> bool static => _platform() =~ "win32"
+
+        /// Whether it is Linux.
+        is_linux() -> bool static => _platform() =~ "linux"
+
+        /// Whether it is macOS.
+        is_mac_o_s() -> bool static => _platform() =~ "darwin"
+
+        @intrinsic("host.os_platform")
+        _platform() -> string static
+    si
+si
+
+namespace System.Runtime.InteropServices is
+    /// A processor architecture, with .NET's values.
+    enum Architecture is
+        X86 = 0,
+        X64 = 1,
+        ARM = 2,
+        ARM64 = 3,
+        WASM = 4
+    si
+
+    /// What the program is running on, as .NET's runtime identifiers name it.
+    class RuntimeInformation is
+        /// The architecture of the machine running the program.
+        process_architecture: Architecture static =>
+            case _architecture()
+            when "x64" then Architecture.X64
+            when "arm64" then Architecture.ARM64
+            when "ia32" then Architecture.X86
+            when "arm" then Architecture.ARM
+            else Architecture.WASM
+            esac
+
+        /// The architecture of the operating system, the same here.
+        os_architecture: Architecture static => process_architecture
+
+        /// The runtime identifier .NET gives this platform, such as
+        /// `linux-x64`, `osx-arm64` or `win-x64`.
+        runtime_identifier: string static is
+            let os =
+                if System.OperatingSystem.is_windows() then "win"
+                elif System.OperatingSystem.is_mac_o_s() then "osx"
+                else "linux"
+                fi
+
+            let arch =
+                case process_architecture
+                when Architecture.X64 then "x64"
+                when Architecture.ARM64 then "arm64"
+                when Architecture.X86 then "x86"
+                when Architecture.ARM then "arm"
+                else "wasm"
+                esac
+
+            return "{os}-{arch}"
+        si
+
+        @intrinsic("host.os_architecture")
+        _architecture() -> string static
+    si
+si
+
+namespace System.Threading is
+    /// The program's one thread.
+    class Thread is
+        /// Blocks the program for `milliseconds`.
+        ///
+        /// - milliseconds: how long to wait
+        sleep(milliseconds: int) static => _sleep(milliseconds)
+
+        @intrinsic("host.sleep")
+        _sleep(milliseconds: int) static
+    si
+si
+
+namespace IO is
+    /// The permission bits of a file, with .NET's values.
+    @Ghul.Flags()
+    enum UnixFileMode is
+        NONE = 0,
+        OTHER_EXECUTE = 1,
+        OTHER_WRITE = 2,
+        OTHER_READ = 4,
+        GROUP_EXECUTE = 8,
+        GROUP_WRITE = 16,
+        GROUP_READ = 32,
+        USER_EXECUTE = 64,
+        USER_WRITE = 128,
+        USER_READ = 256,
+        STICKY_BIT = 512,
+        SET_GROUP = 1024,
+        SET_USER = 2048
+    si
+
+    partial File is
+        /// When the file at `path` was last written, in UTC. Where there is
+        /// nothing there, the start of 1601, as .NET answers.
+        ///
+        /// - path: the file
+        get_last_write_time_utc(path: string) -> System.DateTime static is
+            let milliseconds = _modified_milliseconds(_FILE_STORE.full(path))
+
+            if milliseconds < 0.0 then
+                return System.DateTime(504_911_232_000_000_000L, System.DateTimeKind.UTC)
+            fi
+
+            return System.DateTime(621_355_968_000_000_000L + cast long(milliseconds * 10_000.0), System.DateTimeKind.UTC)
+        si
+
+        /// When the file at `path` was last written. Times are UTC here.
+        ///
+        /// - path: the file
+        get_last_write_time(path: string) -> System.DateTime static =>
+            get_last_write_time_utc(path)
+
+        /// The permission bits of the file at `path`. Throws
+        /// `FileNotFoundException` where there is nothing there.
+        ///
+        /// - path: the file
+        get_unix_file_mode(path: string) -> UnixFileMode static is
+            let full_path = _FILE_STORE.full(path)
+            let mode = _mode(full_path)
+
+            if mode < 0 then
+                throw FileNotFoundException("Could not find file '{full_path}'.")
+            fi
+
+            return cast UnixFileMode(mode)
+        si
+
+        /// Sets the permission bits of the file at `path`.
+        ///
+        /// - path: the file
+        /// - mode: the bits to set
+        set_unix_file_mode(path: string, mode: UnixFileMode) static is
+            let full_path = _FILE_STORE.full(path)
+
+            if _set_mode(full_path, cast int(mode)) != 0 then
+                throw IOException("The mode of '{full_path}' could not be set.")
+            fi
+        si
+
+        @intrinsic("host.file_modified_milliseconds")
+        _modified_milliseconds(path: string) -> double static
+
+        @intrinsic("host.file_mode")
+        _mode(path: string) -> int static
+
+        @intrinsic("host.file_set_mode")
+        _set_mode(path: string, mode: int) -> int static
+    si
+si

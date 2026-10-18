@@ -1,0 +1,41 @@
+use IO.Std.write_line
+use IO.Path
+use IO.File
+
+// The members ghul-cli reaches for, as .NET answers them.
+entry() is
+    write_line(Path.join("a", "b"))
+    write_line(Path.join("a/", "/b"))
+    write_line(Path.join(["", "a", "b", "c"]))
+    write_line(Path.trim_ending_directory_separator("a/b/"))
+    write_line(Path.trim_ending_directory_separator("/"))
+
+    System.Environment.set_environment_variable("GHUL_CORE_SURFACE", "set")
+    write_line(System.Environment.get_environment_variable("GHUL_CORE_SURFACE") ?? "absent")
+    System.Environment.set_environment_variable("GHUL_CORE_SURFACE", null)
+    write_line(System.Environment.get_environment_variable("GHUL_CORE_SURFACE") ?? "absent")
+
+    write_line("{System.Environment.process_id > 0}")
+    write_line("{System.Environment.get_folder_path(System.Environment_SpecialFolder.USER_PROFILE).length > 0}")
+    write_line("{System.OperatingSystem.is_linux() \/ System.OperatingSystem.is_windows() \/ System.OperatingSystem.is_mac_o_s()}")
+    write_line("{System.Runtime.InteropServices.RuntimeInformation.runtime_identifier.contains('-')}")
+
+    let version = System.Version.parse("1.22.3")
+    let parsed: System.Version? mut = null
+
+    write_line("{version} {version.major} {version.minor} {version.build} {version.revision}")
+    write_line("{System.Version.try_parse("1.x", parsed ref)} {parsed?}")
+    write_line("{System.Version.try_parse("2.0", parsed ref)} {parsed}")
+    write_line("{version < System.Version.parse("1.22.10")} {System.Version(1, 2) < System.Version(1, 2, 0)} {version =~ System.Version(1, 22, 3)}")
+
+    let path = Path.join(Path.get_temp_path(), "ghul-core-cli-surface-{System.Environment.process_id}")
+
+    File.write_all_text(path, "x")
+    File.set_unix_file_mode(path, IO.UnixFileMode.USER_READ | IO.UnixFileMode.USER_WRITE | IO.UnixFileMode.USER_EXECUTE)
+    write_line("{File.get_unix_file_mode(path)}")
+    write_line("{File.get_last_write_time_utc(path).year >= 2026}")
+    File.delete(path)
+
+    System.Threading.Thread.sleep(1)
+    write_line("done")
+si

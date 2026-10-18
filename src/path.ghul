@@ -72,6 +72,68 @@ namespace IO is
             return result
         si
 
+        /// `first` and `second` joined into one path with a `/` between them.
+        /// Unlike `combine`, a `second` starting at the root does not replace
+        /// `first`, and an empty part is left out.
+        ///
+        /// - first: the path to start from
+        /// - second: the path to add
+        join(first: string?, second: string?) -> string static pure is
+            let a = first ?? ""
+            let b = second ?? ""
+
+            if a.length == 0 then
+                return b
+            fi
+
+            if b.length == 0 then
+                return a
+            fi
+
+            if a.ends_with('/') \/ b.starts_with('/') then
+                return "{a}{b}"
+            fi
+
+            return "{a}/{b}"
+        si
+
+        /// The three paths joined into one path, as the two-part `join` joins.
+        ///
+        /// - first: the path to start from
+        /// - second: the path to add next
+        /// - third: the path to add last
+        join(first: string?, second: string?, third: string?) -> string static pure =>
+            join(join(first, second), third)
+
+        /// The four paths joined into one path, as the two-part `join` joins.
+        ///
+        /// - first: the path to start from
+        /// - second: the path to add next
+        /// - third: the path to add after that
+        /// - fourth: the path to add last
+        join(first: string?, second: string?, third: string?, fourth: string?) -> string static pure =>
+            join(join(join(first, second), third), fourth)
+
+        /// The paths joined into one path, in order, as the two-part `join`
+        /// joins.
+        ///
+        /// - paths: the paths to join
+        join(paths: string[]) -> string static pure is
+            let result mut = ""
+
+            for path in paths do
+                result = join(result, path)
+            od
+
+            return result
+        si
+
+        /// `path` without a trailing `/`, unless the `/` is the whole path.
+        ///
+        /// - path: the path to trim
+        trim_ending_directory_separator(path: string) -> string static pure =>
+            if path.length > 1 /\ path.ends_with('/') then path.substring(0, path.length - 1) else path fi
+
         /// The last part of `path`: the name of the file or directory it ends
         /// at, or empty where it ends with a `/`.
         ///
@@ -228,7 +290,16 @@ namespace IO is
             return if parts.count == 0 then "." else string.join("/", parts) fi
         si
 
-        /// The directory for temporary files, ending with a `/`.
-        get_temp_path() -> string static => "/tmp/"
+        /// The directory for temporary files, ending with a `/`: the one the
+        /// `TMPDIR` environment variable names, or `/tmp/`.
+        get_temp_path() -> string static is
+            let directory = System.Environment.get_environment_variable("TMPDIR")
+
+            if !directory? \/ directory.length == 0 then
+                return "/tmp/"
+            fi
+
+            return if directory.ends_with('/') then directory else "{directory}/" fi
+        si
     si
 si
