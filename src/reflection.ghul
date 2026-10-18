@@ -36,14 +36,15 @@ namespace System.Reflection is
         /// - field_type: the type it holds
         /// - declaring_type: the type that declares it
         /// - is_public: whether it is public
+        /// - is_static: whether it belongs to the type rather than to an instance
         /// - get: reads it from an instance
         /// - set: writes it in an instance
-        init(name: string, field_type: Type, declaring_type: Type, is_public: bool, get: (object) -> object?, set: (object, object?) -> void) is
+        init(name: string, field_type: Type, declaring_type: Type, is_public: bool, is_static: bool, get: (object) -> object?, set: (object, object?) -> void) is
             self.name = name
             self.field_type = field_type
             self.declaring_type = declaring_type
             self.is_public = is_public
-            self.is_static = false
+            self.is_static = is_static
 
             _get = get
             _set = set
@@ -136,12 +137,13 @@ namespace System.Reflection is
         /// - name: the method's name
         /// - return_type: the type it returns
         /// - is_public: whether it is public
+        /// - is_static: whether it belongs to the type rather than to an instance
         /// - invoke: calls it on an instance with arguments
-        init(name: string, return_type: Type, is_public: bool, invoke: (object, object?[]) -> object?) is
+        init(name: string, return_type: Type, is_public: bool, is_static: bool, invoke: (object, object?[]) -> object?) is
             self.name = name
             self.return_type = return_type
             self.is_public = is_public
-            self.is_static = false
+            self.is_static = is_static
 
             _invoke = invoke
         si
@@ -179,14 +181,15 @@ namespace System.Reflection is
         /// - property_type: the type it holds
         /// - declaring_type: the type that declares it
         /// - is_public: whether it is public
+        /// - is_static: whether it belongs to the type rather than to an instance
         /// - getter: its read accessor, or null where it has none
         /// - setter: its assign accessor, or null where it has none
-        init(name: string, property_type: Type, declaring_type: Type, is_public: bool, getter: MethodInfo?, setter: MethodInfo?) is
+        init(name: string, property_type: Type, declaring_type: Type, is_public: bool, is_static: bool, getter: MethodInfo?, setter: MethodInfo?) is
             self.name = name
             self.property_type = property_type
             self.declaring_type = declaring_type
             self.is_public = is_public
-            self.is_static = false
+            self.is_static = is_static
 
             _getter = getter
             _setter = setter
@@ -539,6 +542,8 @@ namespace Ghul.Internal is
             _parameters.clear()
         si
 
+        // The compiler describes instance members only, which a function
+        // value can read and write given the instance.
         _field[T](name: string, is_public: bool, get: (object) -> T, set: (object, T) -> void) is
             fields.add(
                 FieldInfo(
@@ -546,6 +551,7 @@ namespace Ghul.Internal is
                     typeof T,
                     _type!,
                     is_public,
+                    false,
                     (instance: object) -> object? => get(instance),
                     (instance: object, value: object?) -> void => set(instance, cast T(value))))
         si
@@ -555,14 +561,14 @@ namespace Ghul.Internal is
 
             let getter: MethodInfo? =
                 if let read = get then
-                    MethodInfo("get_{name}", property_type, get_is_public, (instance: object, arguments: object?[]) -> object? => read(instance))
+                    MethodInfo("get_{name}", property_type, get_is_public, false, (instance: object, arguments: object?[]) -> object? => read(instance))
                 else
                     null
                 fi
 
             let setter: MethodInfo? =
                 if let assign = set then
-                    MethodInfo("set_{name}", _VOID, set_is_public, (instance: object, arguments: object?[]) -> object? is
+                    MethodInfo("set_{name}", _VOID, set_is_public, false, (instance: object, arguments: object?[]) -> object? is
                         assign(instance, cast T(arguments[0]))
                         return null
                     si)
@@ -570,7 +576,7 @@ namespace Ghul.Internal is
                     null
                 fi
 
-            properties.add(PropertyInfo(name, property_type, _type!, (get? /\ get_is_public) \/ (set? /\ set_is_public), getter, setter))
+            properties.add(PropertyInfo(name, property_type, _type!, (get? /\ get_is_public) \/ (set? /\ set_is_public), false, getter, setter))
         si
     si
 
