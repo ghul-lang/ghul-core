@@ -1,7 +1,7 @@
 namespace Collections is
     /// A list that grows as elements are added, read and written by
     /// position.
-    class LIST[T]: List[T], MutableList[T] is
+    class LIST[T]: List[T], MutableList[T], Ghul.Internal.UntypedList is
         _items: T[];
         _count: int;
 
@@ -39,6 +39,32 @@ namespace Collections is
 
         /// The number of elements the list can hold before it grows.
         capacity: int => _items.count;
+
+        /// The elements, each as an object, for a reader that knows the
+        /// element type only at run time.
+        untyped_items: object?[] is
+            let result = Ghul._array_new[object?](_count)
+
+            for i in 0.._count do
+                Ghul._array_set(result, i, cast object?(_items[i]))
+            od
+
+            return result
+        si
+
+        /// Replaces the elements with `items`, each of the element type, for a
+        /// reader that knows that type only at run time.
+        ///
+        /// - items: the new elements, in order
+        fill_untyped(items: object?[]) is
+            _items = Ghul._array_new[T](items.count)
+
+            for i in 0..items.count do
+                Ghul._array_set(_items, i, cast T(items[i]))
+            od
+
+            _count = items.count
+        si
 
         /// The element at `index`, counting from zero.
         [index: int]: T pure =>
@@ -471,5 +497,19 @@ namespace Ghul is
         si
 
         compare(x: T, y: T) -> int => _compare(x, y)
+    si
+si
+
+namespace Ghul.Internal is
+    /// A list whose elements can be read and replaced by a reader that knows
+    /// their type only at run time, such as a reflective serializer.
+    trait UntypedList is
+        /// The elements, each as an object.
+        untyped_items: object?[]
+
+        /// Replaces the elements with `items`, each of the element type.
+        ///
+        /// - items: the new elements, in order
+        fill_untyped(items: object?[])
     si
 si

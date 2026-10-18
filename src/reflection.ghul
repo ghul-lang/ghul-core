@@ -33,6 +33,10 @@ namespace System.Reflection is
         /// Whether the field belongs to the type rather than to an instance.
         is_static: bool
 
+        /// Whether the field can be written only by a constructor; never, as
+        /// ghūl declares no such fields.
+        is_init_only: bool => false
+
         /// - name: the field's name
         /// - field_type: the type it holds
         /// - declaring_type: the type that declares it
@@ -199,6 +203,10 @@ namespace System.Reflection is
             _getter = getter
             _setter = setter
         si
+
+        /// The parameters of an indexer; none, as reflection does not
+        /// describe indexers.
+        get_index_parameters() -> ParameterInfo[] => []
 
         /// Whether the property has a read accessor.
         can_read: bool => _getter?
