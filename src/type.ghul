@@ -261,22 +261,25 @@ namespace Ghul is
         to_string() -> string => _full_name
 
         /// What reflection knows about the type, filled in the first time it
-        /// is asked for; empty for a type the program does not reflect on.
-        /// For the core library's own reflection classes.
+        /// is asked for. For the core library's own reflection classes.
+        /// Throws `NotSupportedException` where the program was built
+        /// without descriptions of its types.
         description: TYPE_DESCRIPTION is
             if let description = _description then
                 return description
             fi
 
-            let description = TYPE_DESCRIPTION(self)
-
-            _description = description
-
             if let describe = _describe then
+                let description = TYPE_DESCRIPTION(self)
+
+                _description = description
+
                 describe(description)
+
+                return description
             fi
 
-            return description
+            throw Ghul.NotSupportedException("reflection over {_full_name} needs the program built with --rtti")
         si
 
         _selects(flags: BindingFlags, is_public: bool, is_static: bool, inherited: bool) -> bool static is
