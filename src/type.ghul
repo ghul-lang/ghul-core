@@ -4,6 +4,7 @@ namespace Ghul is
     use System.Reflection.BindingFlags
     use System.Reflection.FieldInfo
     use System.Reflection.PropertyInfo
+    use System.Reflection.ConstructorInfo
 
     use Ghul.Internal.TYPE_DESCRIPTION
 
@@ -193,6 +194,25 @@ namespace Ghul is
         get_property(name: string) -> PropertyInfo? =>
             get_property(name, BindingFlags.PUBLIC | BindingFlags.INSTANCE | BindingFlags.STATIC)
 
+        /// The constructors `flags` selects: public or non-public ones, of
+        /// instances. A type's constructors are its own, never its base's.
+        ///
+        /// - flags: which constructors to report
+        get_constructors(flags: BindingFlags) -> ConstructorInfo[] is
+            let result = LIST[ConstructorInfo]()
+
+            for constructor in description.constructors do
+                if _selects(flags, constructor.is_public, false, false) then
+                    result.add(constructor)
+                fi
+            od
+
+            return result.to_array()
+        si
+
+        /// The public constructors.
+        get_constructors() -> ConstructorInfo[] => get_constructors(BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+
         /// The attributes of `attribute_type` the type carries.
         ///
         /// - attribute_type: the attribute type to look for
@@ -207,6 +227,22 @@ namespace Ghul is
                         result.add(attribute)
                     fi
                 od
+
+                level = if inherit then current.base_type else null fi
+            od
+
+            return result.to_array()
+        si
+
+        /// Every attribute the type carries.
+        ///
+        /// - inherit: whether to look on the base types too
+        get_custom_attributes(inherit: bool) -> object[] is
+            let result = LIST[object]()
+            let level: Type? mut = self
+
+            while let current = level do
+                result.add_range(current.description.attributes)
 
                 level = if inherit then current.base_type else null fi
             od

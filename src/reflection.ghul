@@ -61,6 +61,62 @@ namespace System.Reflection is
         set_value(instance: object?, value: object?) => _set(instance!, value)
     si
 
+    /// A parameter of a constructor.
+    class ParameterInfo is
+        /// The parameter's name, which .NET allows to be absent.
+        name: string?
+
+        /// The type the parameter takes.
+        parameter_type: Type
+
+        /// The parameter's position, counting from zero.
+        position: int
+
+        /// - name: the parameter's name
+        /// - parameter_type: the type it takes
+        /// - position: its position, counting from zero
+        init(name: string, parameter_type: Type, position: int) is
+            self.name = name
+            self.parameter_type = parameter_type
+            self.position = position
+        si
+    si
+
+    /// A constructor a type declares.
+    class ConstructorInfo is
+        _parameters: ParameterInfo[]
+        _invoke: (object?[]) -> object
+
+        /// The type the constructor makes.
+        declaring_type: Type
+
+        /// Whether the constructor is public.
+        is_public: bool
+
+        /// - declaring_type: the type it makes
+        /// - is_public: whether it is public
+        /// - parameters: its parameters, in order
+        /// - invoke: makes an instance from arguments, in order
+        init(declaring_type: Type, is_public: bool, parameters: ParameterInfo[], invoke: (object?[]) -> object) is
+            self.declaring_type = declaring_type
+            self.is_public = is_public
+
+            _parameters = parameters
+            _invoke = invoke
+        si
+
+        /// The constructor's name, as .NET names every constructor.
+        name: string => ".ctor"
+
+        /// The constructor's parameters, in order.
+        get_parameters() -> ParameterInfo[] => _parameters
+
+        /// A new instance, made by the constructor from `arguments`.
+        ///
+        /// - arguments: one argument for each parameter, in order
+        invoke(arguments: object?[]) -> object => _invoke(arguments)
+    si
+
     /// A method, as far as reflection reaches one: a property's accessor.
     class MethodInfo is
         _invoke: (object, object?[]) -> object?
@@ -190,12 +246,95 @@ si
 namespace System is
     use Ghul.Type
 
+    /// The base of the classes a declaration carries as attributes.
+    class Attribute abstract open is
+        init() is si
+    si
+
     /// Makes objects of a type known only at run time.
     class Activator is
         /// A new instance of `type`, made by its parameterless constructor.
         ///
         /// - type: the type to make
-        create_instance(type: Type) -> object static => if let make = type.description.construct then make() else throw Ghul.InvalidOperationException("{type.full_name} has no parameterless constructor") fi
+        create_instance(type: Type) -> object? static => create_instance(type, [])
+
+        /// A new instance of `type`, made by its constructor that takes as
+        /// many arguments as `arguments` holds.
+        ///
+        /// - type: the type to make
+        /// - arguments: the constructor's arguments, in order
+        create_instance(type: Type, arguments: object?[]) -> object? static is
+            for constructor in type.description.constructors do
+                if constructor.get_parameters().count == arguments.count then
+                    return constructor.invoke(arguments)
+                fi
+            od
+
+            throw Ghul.InvalidOperationException("{type.full_name} has no constructor taking {arguments.count} arguments")
+        si
+    si
+
+    /// Reflection over enums.
+    class Enum is
+        /// The names of `enum_type`'s members, in ascending order of value.
+        ///
+        /// - enum_type: the enum
+        get_names(enum_type: Type) -> string[] static => enum_type.description.enum_names.to_array()
+
+        /// `enum_type`'s members, each as a value of the enum, in ascending
+        /// order.
+        ///
+        /// - enum_type: the enum
+        get_values(enum_type: Type) -> object[] static => enum_type.description.enum_values.to_array()
+
+        /// The name of the member of `enum_type` that `value` is, or null
+        /// where it is none of them.
+        ///
+        /// - enum_type: the enum
+        /// - value: a value of the enum
+        get_name(enum_type: Type, value: object) -> string? static is
+            let text = value.to_string()
+
+            for name in enum_type.description.enum_names do
+                if name =~ text then
+                    return name
+                fi
+            od
+
+            return null
+        si
+
+        /// The member of `enum_type` whose underlying value is `value`.
+        ///
+        /// - enum_type: the enum
+        /// - value: the underlying value
+        to_object(enum_type: Type, value: long) -> object static is
+            let description = enum_type.description
+
+            for i in 0..description.enum_numbers.count do
+                if description.enum_numbers[i] == value then
+                    return description.enum_values[i]
+                fi
+            od
+
+            throw Ghul.ArgumentException("{value} is not a member of {enum_type.full_name}")
+        si
+
+        /// The member of `enum_type` named `name`.
+        ///
+        /// - enum_type: the enum
+        /// - value: the member's name
+        parse(enum_type: Type, value: string) -> object static is
+            let description = enum_type.description
+
+            for i in 0..description.enum_names.count do
+                if description.enum_names[i] =~ value then
+                    return description.enum_values[i]
+                fi
+            od
+
+            throw Ghul.ArgumentException("{value} is not a member of {enum_type.full_name}")
+        si
     si
 
     /// Reflection over `Nullable[T]`, the optional of a value type.
@@ -215,6 +354,8 @@ namespace Ghul.Internal is
 
     use System.Reflection.FieldInfo
     use System.Reflection.MethodInfo
+    use System.Reflection.ConstructorInfo
+    use System.Reflection.ParameterInfo
     use System.Reflection.PropertyInfo
 
     /// What reflection knows about one type, filled in by the description
@@ -249,8 +390,20 @@ namespace Ghul.Internal is
         /// The attributes the type carries.
         attributes: LIST[object]
 
-        /// Makes an instance through the parameterless constructor.
-        construct: (() -> object)?
+        /// The constructors the type declares.
+        constructors: LIST[ConstructorInfo]
+
+        _parameters: LIST[ParameterInfo]
+        _attribute_types: LIST[Type]
+
+        /// An enum's member names, in ascending order of value.
+        enum_names: LIST[string]
+
+        /// An enum's members, each as a value of the enum, in the same order.
+        enum_values: LIST[object]
+
+        /// An enum's members' underlying values, in the same order.
+        enum_numbers: LIST[long]
 
         /// `T` where the type is `Nullable[T]`.
         nullable_underlying: Type?
@@ -268,6 +421,12 @@ namespace Ghul.Internal is
             fields = LIST[FieldInfo]()
             properties = LIST[PropertyInfo]()
             attributes = LIST[object]()
+            constructors = LIST[ConstructorInfo]()
+            enum_names = LIST[string]()
+            enum_values = LIST[object]()
+            enum_numbers = LIST[long]()
+            _parameters = LIST[ParameterInfo]()
+            _attribute_types = LIST[Type]()
         si
 
         is_class: bool => kind & TYPE_KIND.CLASS != 0
@@ -304,12 +463,31 @@ namespace Ghul.Internal is
             maybe_underlying = typeof T
         si
 
-        _attribute(attribute: object) is
-            attributes.add(attribute)
+        _attribute_type[T]() is
+            _attribute_types.add(typeof T)
         si
 
-        _constructor(make: () -> object) is
-            construct = make
+        _attribute(make: (object?[]) -> object) is
+            let arguments: object?[] =
+                if _attribute_types.count == 0 then [] else [cast object(_attribute_types.to_array())] fi
+
+            attributes.add(make(arguments))
+            _attribute_types.clear()
+        si
+
+        _enum_member[T](name: string, value: T, number: long) is
+            enum_names.add(name)
+            enum_values.add(cast object(value))
+            enum_numbers.add(number)
+        si
+
+        _parameter[T](name: string) is
+            _parameters.add(ParameterInfo(name, typeof T, _parameters.count))
+        si
+
+        _constructor(make: (object?[]) -> object, is_public: bool) is
+            constructors.add(ConstructorInfo(_type!, is_public, _parameters.to_array(), make))
+            _parameters.clear()
         si
 
         _field[T](name: string, is_public: bool, get: (object) -> T, set: (object, T) -> void) is
