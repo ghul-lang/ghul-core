@@ -15,6 +15,26 @@ namespace IO is
         /// The reader for standard input.
         `in: TextReader static => _in
 
+        /// Whether a complete line is waiting in standard input, or the end
+        /// of the input has been reached. Never waits, and never reads:
+        /// the line stays there for `read_line` to take.
+        ///
+        /// A host that cannot ask this - a page supplying input through
+        /// the loader's `stdin` option, say - answers whether it has more
+        /// to give, which is what a poll-then-read loop wants.
+        has_pending_input() -> bool static =>
+            _pending_input()
+
+        /// Waits up to `timeout_ms` for a complete line of standard input,
+        /// answering whether one arrived before the timeout ran out. A
+        /// timeout of zero or less waits indefinitely. Answers true at the
+        /// end of the input as well, so a caller that keeps waiting keeps
+        /// being told there is something to read.
+        ///
+        /// - timeout_ms: how long to wait, in milliseconds
+        wait_for_input(timeout_ms: int) -> bool static =>
+            _wait_for_input(timeout_ms)
+
         /// Reads the next line of standard input, without its line break,
         /// or null at the end of the input.
         read_line() -> string? static => _in.read_line()
@@ -108,6 +128,12 @@ namespace IO is
 
         @intrinsic("host.stdin_read_to_end")
         _read_to_end() -> string static
+
+        @intrinsic("host.stdin_pending")
+        _pending_input() -> bool static
+
+        @intrinsic("host.stdin_wait")
+        _wait_for_input(timeout_ms: int) -> bool static
     si
 
     /// Writes text to a stream, a line or a piece at a time.
