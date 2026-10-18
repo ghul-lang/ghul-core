@@ -25,8 +25,11 @@ what a program can write, that is a finding.
 
 - **Source compatibility with .NET.** A public type or member whose name,
   signature or behaviour differs from what the same ghūl program sees on .NET
-  makes a program compile on one target and not the other. Nothing is declared
-  under `System`.
+  makes a program compile on one target and not the other. A .NET
+  compatibility type - one that exists in the BCL and is declared here so a
+  program written for .NET can name it - is declared under its BCL name and
+  namespace; a ghūl-named type (one GHUL.md documents under `Ghul`,
+  `Collections`, `Text` or `IO`) is never declared under `System`.
   While the wasm backend is under construction, a difference from the .NET
   surface is acceptable when the pull request's description names the
   ghul-lang/ghul issue that tracks closing it. A difference the description

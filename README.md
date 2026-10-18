@@ -5,10 +5,13 @@ ghūl source. On .NET a program's strings, collections, exceptions and
 console come from the .NET base class library; on WasmGC none of that
 exists, so it is supplied here and compiled into the program.
 
-Nothing is declared under `System`: the library's types carry the ghūl
-names settled in [ghul-lang/ghul#3230](https://github.com/ghul-lang/ghul/issues/3230),
-which are the names a .NET program uses too, so one program compiles for
-both targets unchanged. The built-in types themselves — the scalars,
+A type GHUL.md documents under a ghūl name, in `Ghul`, `Collections`,
+`Text` or `IO`, carries that name, settled in
+[ghul-lang/ghul#3230](https://github.com/ghul-lang/ghul/issues/3230); a .NET
+type that ghūl does not rename, such as `System.Guid` or
+`System.Reflection.FieldInfo`, is declared under its .NET name and namespace.
+Either way these are the names a .NET program uses too, so one program
+compiles for both targets unchanged. The built-in types themselves — the scalars,
 `object`, `string`, the array, function and tuple shapes — are
 constructed by the compiler under `--target wasm`; this library reopens
 them with `partial` blocks to give them their members, and declares
