@@ -67,6 +67,15 @@ jobs:
     - name: Restore local .NET tools
       run: dotnet tool restore
 
+    # The tool manifest's pin is only a local-dev fallback; this repoints
+    # at the latest published ghul.compiler and ghul.cli so the tests build
+    # with the newest toolchain regardless of when the manifest was last
+    # bumped.
+    - name: Update local .NET tools to the latest published
+      run: |
+        dotnet tool update --local ghul.compiler
+        dotnet tool update --local ghul.cli
+
     # A test built for the wasm target runs its program under Node.
     - name: Set up Node.js
       uses: actions/setup-node@v7
@@ -94,6 +103,11 @@ jobs:
 
     - name: Restore local .NET tools
       run: dotnet tool restore
+
+    - name: Update local .NET tools to the latest published
+      run: |
+        dotnet tool update --local ghul.compiler
+        dotnet tool update --local ghul.cli
 
     - name: Run tests on llvm
       run: dotnet ghul-test --config llvm tests
