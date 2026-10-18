@@ -245,6 +245,7 @@ si
 
 namespace System is
     use Ghul.Type
+    use Ghul.Internal.TYPE_DESCRIPTIONS
 
     /// The base of the classes a declaration carries as attributes.
     class Attribute abstract open is
@@ -264,7 +265,7 @@ namespace System is
         /// - type: the type to make
         /// - arguments: the constructor's arguments, in order
         create_instance(type: Type, arguments: object?[]) -> object? static is
-            for constructor in type.description.constructors do
+            for constructor in TYPE_DESCRIPTIONS.of(type).constructors do
                 if constructor.get_parameters().count == arguments.count then
                     return constructor.invoke(arguments)
                 fi
@@ -279,13 +280,13 @@ namespace System is
         /// The names of `enum_type`'s members, in ascending order of value.
         ///
         /// - enum_type: the enum
-        get_names(enum_type: Type) -> string[] static => enum_type.description.enum_names.to_array()
+        get_names(enum_type: Type) -> string[] static => TYPE_DESCRIPTIONS.of(enum_type).enum_names.to_array()
 
         /// `enum_type`'s members, each as a value of the enum, in ascending
         /// order.
         ///
         /// - enum_type: the enum
-        get_values(enum_type: Type) -> object[] static => enum_type.description.enum_values.to_array()
+        get_values(enum_type: Type) -> object[] static => TYPE_DESCRIPTIONS.of(enum_type).enum_values.to_array()
 
         /// The name of the member of `enum_type` that `value` is, or null
         /// where it is none of them.
@@ -295,7 +296,7 @@ namespace System is
         get_name(enum_type: Type, value: object) -> string? static is
             let text = value.to_string()
 
-            for name in enum_type.description.enum_names do
+            for name in TYPE_DESCRIPTIONS.of(enum_type).enum_names do
                 if name =~ text then
                     return name
                 fi
@@ -309,7 +310,7 @@ namespace System is
         /// - enum_type: the enum
         /// - value: the underlying value
         to_object(enum_type: Type, value: long) -> object static is
-            let description = enum_type.description
+            let description = TYPE_DESCRIPTIONS.of(enum_type)
 
             for i in 0..description.enum_numbers.count do
                 if description.enum_numbers[i] == value then
@@ -325,7 +326,7 @@ namespace System is
         /// - enum_type: the enum
         /// - value: the member's name
         parse(enum_type: Type, value: string) -> object static is
-            let description = enum_type.description
+            let description = TYPE_DESCRIPTIONS.of(enum_type)
 
             for i in 0..description.enum_names.count do
                 if description.enum_names[i] =~ value then
@@ -343,12 +344,13 @@ namespace System is
         /// for any other type.
         ///
         /// - type: the type to look at
-        get_underlying_type(type: Type) -> Type? static => type.description.nullable_underlying
+        get_underlying_type(type: Type) -> Type? static => TYPE_DESCRIPTIONS.of(type).nullable_underlying
     si
 si
 
 namespace Ghul.Internal is
     use Collections.LIST
+    use Collections.MAP
 
     use Ghul.Type
 
@@ -357,6 +359,53 @@ namespace Ghul.Internal is
     use System.Reflection.ConstructorInfo
     use System.Reflection.ParameterInfo
     use System.Reflection.PropertyInfo
+
+    /// The description of each type the program reflects on, kept apart from
+    /// the type object so that nothing public reaches it.
+    class TYPE_DESCRIPTIONS is
+        _describers: MAP[Type, (TYPE_DESCRIPTION) -> void] static
+        _descriptions: MAP[Type, TYPE_DESCRIPTION] static
+
+        init() static is
+            _describers = MAP[Type, (TYPE_DESCRIPTION) -> void]()
+            _descriptions = MAP[Type, TYPE_DESCRIPTION]()
+        si
+
+        /// Records how to describe `type`, done the first time it is asked
+        /// for.
+        ///
+        /// - type: the type object
+        /// - describe: fills in its description
+        register(type: Type, describe: (TYPE_DESCRIPTION) -> void) static is
+            _describers[type] = describe
+        si
+
+        /// What reflection knows about `type`. Throws `NotSupportedException`
+        /// where the program was built without descriptions of its types.
+        ///
+        /// - type: the type object
+        of(type: Type) -> TYPE_DESCRIPTION static is
+            let found: TYPE_DESCRIPTION mut
+
+            if _descriptions.try_get_value(type, found ref) then
+                return found
+            fi
+
+            let describe: (TYPE_DESCRIPTION) -> void mut
+
+            if !_describers.try_get_value(type, describe ref) then
+                throw Ghul.NotSupportedException("reflection over {type.full_name} needs the program built with --rtti")
+            fi
+
+            let description = TYPE_DESCRIPTION(type)
+
+            _descriptions[type] = description
+
+            describe(description)
+
+            return description
+        si
+    si
 
     /// What reflection knows about one type, filled in by the description
     /// the compiler generates for it.

@@ -7,6 +7,7 @@ namespace Ghul is
     use System.Reflection.ConstructorInfo
 
     use Ghul.Internal.TYPE_DESCRIPTION
+    use Ghul.Internal.TYPE_DESCRIPTIONS
 
     /// The type of a value, as `get_type` and `typeof` give it. Each type
     /// has one, so two are the same object exactly when they stand for the
@@ -14,8 +15,6 @@ namespace Ghul is
     @suppress("non-upper-snake-case-name")
     class Type is
         _full_name: string
-        _describe: ((TYPE_DESCRIPTION) -> void)?
-        _description: TYPE_DESCRIPTION?
 
         /// - full_name: the type's name, qualified by its namespace
         init(full_name: string) is
@@ -29,7 +28,8 @@ namespace Ghul is
         ///   the first time one is asked for
         init(full_name: string, describe: (TYPE_DESCRIPTION) -> void) is
             _full_name = full_name
-            _describe = describe
+
+            TYPE_DESCRIPTIONS.register(self, describe)
         si
 
         /// The type's name, qualified by its namespace, with its type
@@ -58,36 +58,36 @@ namespace Ghul is
         si
 
         /// The class this type derives from, or null for `object`, a
-        /// struct's own base aside, and for a type with no description.
-        base_type: Type? => description.base_type
+        /// struct's own base aside.
+        base_type: Type? => _described.base_type
 
         /// Whether the type is a class: not a struct, an enum or a trait.
-        is_class: bool => description.is_class
+        is_class: bool => _described.is_class
 
         /// Whether the type is a value type: a scalar, a struct or an enum.
-        is_value_type: bool => description.is_value_type
+        is_value_type: bool => _described.is_value_type
 
         /// Whether the type is an enum.
-        is_enum: bool => description.is_enum
+        is_enum: bool => _described.is_enum
 
         /// Whether the type is a trait.
-        is_interface: bool => description.is_interface
+        is_interface: bool => _described.is_interface
 
         /// Whether the type is an array.
-        is_array: bool => description.is_array
+        is_array: bool => _described.is_array
 
         /// Whether the type is an instantiation of a generic type.
-        is_generic_type: bool => description.arguments.count > 0
+        is_generic_type: bool => _described.arguments.count > 0
 
         /// The type arguments of a generic type's instantiation, in order;
         /// none for any other type.
-        get_generic_arguments() -> Type[] => description.arguments.to_array()
+        get_generic_arguments() -> Type[] => _described.arguments.to_array()
 
         /// The element type of an array type, or null for any other type.
-        get_element_type() -> Type? => description.element_type
+        get_element_type() -> Type? => _described.element_type
 
         /// Every trait the type implements.
-        get_interfaces() -> Type[] => description.interfaces.to_array()
+        get_interfaces() -> Type[] => _described.interfaces.to_array()
 
         /// The fields `flags` selects: instance or static ones, public or
         /// non-public ones, and, unless `DECLARED_ONLY` is given, the public
@@ -100,7 +100,7 @@ namespace Ghul is
             let inherited mut = false
 
             while let current = level do
-                for `field in current.description.fields do
+                for `field in current._described.fields do
                     if _selects(flags, `field.is_public, `field.is_static, inherited) then
                         result.add(`field)
                     fi
@@ -117,8 +117,8 @@ namespace Ghul is
             return result.to_array()
         si
 
-        /// The public instance fields, the type's own and its base types'.
-        get_fields() -> FieldInfo[] => get_fields(BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+        /// The public fields, the type's own and its base types'.
+        get_fields() -> FieldInfo[] => get_fields(BindingFlags.PUBLIC | BindingFlags.INSTANCE | BindingFlags.STATIC)
 
         /// The field `flags` selects named `name`, or null where there is
         /// none.
@@ -135,11 +135,10 @@ namespace Ghul is
             return null
         si
 
-        /// The public instance field named `name`, or null where there is
-        /// none.
+        /// The public field named `name`, or null where there is none.
         ///
         /// - name: the field's name
-        get_field(name: string) -> FieldInfo? => get_field(name, BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+        get_field(name: string) -> FieldInfo? => get_field(name, BindingFlags.PUBLIC | BindingFlags.INSTANCE | BindingFlags.STATIC)
 
         /// The properties `flags` selects, as `get_fields` selects fields.
         /// A property a derived type redeclares is reported once, as the
@@ -152,7 +151,7 @@ namespace Ghul is
             let inherited mut = false
 
             while let current = level do
-                for property in current.description.properties do
+                for property in current._described.properties do
                     if _selects(flags, property.is_public, property.is_static, inherited) /\ !_has_property(result, property.name) then
                         result.add(property)
                     fi
@@ -169,9 +168,8 @@ namespace Ghul is
             return result.to_array()
         si
 
-        /// The public instance properties, the type's own and its base
-        /// types'.
-        get_properties() -> PropertyInfo[] => get_properties(BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+        /// The public properties, the type's own and its base types'.
+        get_properties() -> PropertyInfo[] => get_properties(BindingFlags.PUBLIC | BindingFlags.INSTANCE | BindingFlags.STATIC)
 
         /// The property `flags` selects named `name`, or null where there
         /// is none.
@@ -201,7 +199,7 @@ namespace Ghul is
         get_constructors(flags: BindingFlags) -> ConstructorInfo[] is
             let result = LIST[ConstructorInfo]()
 
-            for constructor in description.constructors do
+            for constructor in _described.constructors do
                 if _selects(flags, constructor.is_public, false, false) then
                     result.add(constructor)
                 fi
@@ -222,7 +220,7 @@ namespace Ghul is
             let level: Type? mut = self
 
             while let current = level do
-                for attribute in current.description.attributes do
+                for attribute in current._described.attributes do
                     if attribute.get_type() == attribute_type then
                         result.add(attribute)
                     fi
@@ -242,7 +240,7 @@ namespace Ghul is
             let level: Type? mut = self
 
             while let current = level do
-                result.add_range(current.description.attributes)
+                result.add_range(current._described.attributes)
 
                 level = if inherit then current.base_type else null fi
             od
@@ -260,27 +258,7 @@ namespace Ghul is
         /// The type's full name.
         to_string() -> string => _full_name
 
-        /// What reflection knows about the type, filled in the first time it
-        /// is asked for. For the core library's own reflection classes.
-        /// Throws `NotSupportedException` where the program was built
-        /// without descriptions of its types.
-        description: TYPE_DESCRIPTION is
-            if let description = _description then
-                return description
-            fi
-
-            if let describe = _describe then
-                let description = TYPE_DESCRIPTION(self)
-
-                _description = description
-
-                describe(description)
-
-                return description
-            fi
-
-            throw Ghul.NotSupportedException("reflection over {_full_name} needs the program built with --rtti")
-        si
+        _described: TYPE_DESCRIPTION => TYPE_DESCRIPTIONS.of(self)
 
         _selects(flags: BindingFlags, is_public: bool, is_static: bool, inherited: bool) -> bool static is
             let wants_visibility =
