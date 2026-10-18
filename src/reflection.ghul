@@ -1,0 +1,358 @@
+namespace System.Reflection is
+    use Ghul.Type
+
+    /// Which members `Type.get_fields` and `Type.get_properties` report.
+    @Ghul.Flags()
+    enum BindingFlags is
+        DEFAULT = 0,
+        DECLARED_ONLY = 2,
+        INSTANCE = 4,
+        STATIC = 8,
+        PUBLIC = 16,
+        NON_PUBLIC = 32
+    si
+
+    /// A field a type declares.
+    class FieldInfo is
+        _get: (object) -> object?
+        _set: (object, object?) -> void
+
+        /// The field's name, as the type declares it.
+        name: string
+
+        /// The type the field holds.
+        field_type: Type
+
+        /// The type that declares the field.
+        declaring_type: Type
+
+        /// Whether the field is public.
+        is_public: bool
+
+        /// Whether the field belongs to the type rather than to an instance.
+        is_static: bool
+
+        /// - name: the field's name
+        /// - field_type: the type it holds
+        /// - declaring_type: the type that declares it
+        /// - is_public: whether it is public
+        /// - get: reads it from an instance
+        /// - set: writes it in an instance
+        init(name: string, field_type: Type, declaring_type: Type, is_public: bool, get: (object) -> object?, set: (object, object?) -> void) is
+            self.name = name
+            self.field_type = field_type
+            self.declaring_type = declaring_type
+            self.is_public = is_public
+            self.is_static = false
+
+            _get = get
+            _set = set
+        si
+
+        /// The field's value in `instance`, whatever its access.
+        ///
+        /// - instance: the object to read
+        get_value(instance: object?) -> object? => _get(instance!)
+
+        /// Writes `value` into the field in `instance`, whatever its access.
+        ///
+        /// - instance: the object to write
+        /// - value: the value to store, of the field's type
+        set_value(instance: object?, value: object?) => _set(instance!, value)
+    si
+
+    /// A method, as far as reflection reaches one: a property's accessor.
+    class MethodInfo is
+        _invoke: (object, object?[]) -> object?
+
+        /// The method's name.
+        name: string
+
+        /// The type the method returns, `void` included.
+        return_type: Type
+
+        /// Whether the method is public.
+        is_public: bool
+
+        /// Whether the method belongs to the type rather than to an instance.
+        is_static: bool
+
+        /// - name: the method's name
+        /// - return_type: the type it returns
+        /// - is_public: whether it is public
+        /// - invoke: calls it on an instance with arguments
+        init(name: string, return_type: Type, is_public: bool, invoke: (object, object?[]) -> object?) is
+            self.name = name
+            self.return_type = return_type
+            self.is_public = is_public
+            self.is_static = false
+
+            _invoke = invoke
+        si
+
+        /// Calls the method on `instance` with `arguments`, and returns
+        /// what it returns, or null for a method that returns nothing.
+        ///
+        /// - instance: the receiver
+        /// - arguments: the arguments, in order
+        invoke(instance: object?, arguments: object?[]) -> object? => _invoke(instance!, arguments)
+    si
+
+    /// A property a type declares.
+    class PropertyInfo is
+        _getter: MethodInfo?
+        _setter: MethodInfo?
+
+        /// The property's name, as the type declares it.
+        name: string
+
+        /// The type the property holds.
+        property_type: Type
+
+        /// The type that declares the property.
+        declaring_type: Type
+
+        /// Whether the property is public.
+        is_public: bool
+
+        /// Whether the property belongs to the type rather than to an
+        /// instance.
+        is_static: bool
+
+        /// - name: the property's name
+        /// - property_type: the type it holds
+        /// - declaring_type: the type that declares it
+        /// - is_public: whether it is public
+        /// - getter: its read accessor, or null where it has none
+        /// - setter: its assign accessor, or null where it has none
+        init(name: string, property_type: Type, declaring_type: Type, is_public: bool, getter: MethodInfo?, setter: MethodInfo?) is
+            self.name = name
+            self.property_type = property_type
+            self.declaring_type = declaring_type
+            self.is_public = is_public
+            self.is_static = false
+
+            _getter = getter
+            _setter = setter
+        si
+
+        /// Whether the property has a read accessor.
+        can_read: bool => _getter?
+
+        /// Whether the property has an assign accessor.
+        can_write: bool => _setter?
+
+        /// The read accessor, or null where it has none or it is not public
+        /// and `non_public` is false.
+        ///
+        /// - non_public: whether to return a non-public accessor
+        get_get_method(non_public: bool) -> MethodInfo? =>
+            if let getter = _getter /\ (non_public \/ getter.is_public) then getter else null fi
+
+        /// The public read accessor, or null where it has none.
+        get_get_method() -> MethodInfo? => get_get_method(false)
+
+        /// The assign accessor, or null where it has none or it is not
+        /// public and `non_public` is false.
+        ///
+        /// - non_public: whether to return a non-public accessor
+        get_set_method(non_public: bool) -> MethodInfo? =>
+            if let setter = _setter /\ (non_public \/ setter.is_public) then setter else null fi
+
+        /// The public assign accessor, or null where it has none.
+        get_set_method() -> MethodInfo? => get_set_method(false)
+
+        /// The property's value in `instance`, read through its accessor.
+        ///
+        /// - instance: the object to read
+        get_value(instance: object?) -> object? =>
+            if let getter = _getter then
+                getter.invoke(instance, [])
+            else
+                throw Ghul.ArgumentException("property {name} has no read accessor")
+            fi
+
+        /// Assigns `value` to the property in `instance` through its
+        /// accessor.
+        ///
+        /// - instance: the object to write
+        /// - value: the value to assign, of the property's type
+        set_value(instance: object?, value: object?) is
+            if let setter = _setter then
+                setter.invoke(instance, [value])
+            else
+                throw Ghul.ArgumentException("property {name} has no assign accessor")
+            fi
+        si
+    si
+si
+
+namespace System is
+    use Ghul.Type
+
+    /// Makes objects of a type known only at run time.
+    class Activator is
+        /// A new instance of `type`, made by its parameterless constructor.
+        ///
+        /// - type: the type to make
+        create_instance(type: Type) -> object static => if let make = type.description.construct then make() else throw Ghul.InvalidOperationException("{type.full_name} has no parameterless constructor") fi
+    si
+
+    /// Reflection over `Nullable[T]`, the optional of a value type.
+    class Nullable is
+        /// `T` where `type` is the optional of the value type `T`, and null
+        /// for any other type.
+        ///
+        /// - type: the type to look at
+        get_underlying_type(type: Type) -> Type? static => type.description.nullable_underlying
+    si
+si
+
+namespace Ghul.Internal is
+    use Collections.LIST
+
+    use Ghul.Type
+
+    use System.Reflection.FieldInfo
+    use System.Reflection.MethodInfo
+    use System.Reflection.PropertyInfo
+
+    /// What reflection knows about one type, filled in by the description
+    /// the compiler generates for it.
+    class TYPE_DESCRIPTION is
+        _type: Type?
+
+        // What a method that returns nothing returns.
+        _VOID: Type static => Type("System.Void")
+
+        /// The class the type derives from.
+        base_type: Type?
+
+        /// The type's kind, as `TYPE_KIND` flags.
+        kind: int
+
+        /// The type arguments of a generic type's instantiation.
+        arguments: LIST[Type]
+
+        /// The element type of an array type.
+        element_type: Type?
+
+        /// The traits the type implements.
+        interfaces: LIST[Type]
+
+        /// The fields the type itself declares.
+        fields: LIST[FieldInfo]
+
+        /// The properties the type itself declares.
+        properties: LIST[PropertyInfo]
+
+        /// The attributes the type carries.
+        attributes: LIST[object]
+
+        /// Makes an instance through the parameterless constructor.
+        construct: (() -> object)?
+
+        /// `T` where the type is `Nullable[T]`.
+        nullable_underlying: Type?
+
+        /// `T` where the type is `MAYBE[T]`.
+        maybe_underlying: Type?
+
+        /// An empty description of `type`.
+        ///
+        /// - type: the type described
+        init(type: Type) is
+            _type = type
+            arguments = LIST[Type]()
+            interfaces = LIST[Type]()
+            fields = LIST[FieldInfo]()
+            properties = LIST[PropertyInfo]()
+            attributes = LIST[object]()
+        si
+
+        is_class: bool => kind & TYPE_KIND.CLASS != 0
+        is_value_type: bool => kind & TYPE_KIND.VALUE_TYPE != 0
+        is_enum: bool => kind & TYPE_KIND.ENUM != 0
+        is_interface: bool => kind & TYPE_KIND.INTERFACE != 0
+        is_array: bool => kind & TYPE_KIND.ARRAY != 0
+
+        _kind(kind: int) is
+            self.kind = kind
+        si
+
+        _base[T]() is
+            base_type = typeof T
+        si
+
+        _argument[T]() is
+            arguments.add(typeof T)
+        si
+
+        _element[T]() is
+            element_type = typeof T
+        si
+
+        _interface[T]() is
+            interfaces.add(typeof T)
+        si
+
+        _nullable_of[T]() is
+            nullable_underlying = typeof T
+        si
+
+        _maybe_of[T]() is
+            maybe_underlying = typeof T
+        si
+
+        _attribute(attribute: object) is
+            attributes.add(attribute)
+        si
+
+        _constructor(make: () -> object) is
+            construct = make
+        si
+
+        _field[T](name: string, is_public: bool, get: (object) -> T, set: (object, T) -> void) is
+            fields.add(
+                FieldInfo(
+                    name,
+                    typeof T,
+                    _type!,
+                    is_public,
+                    (instance: object) -> object? => get(instance),
+                    (instance: object, value: object?) -> void => set(instance, cast T(value))))
+        si
+
+        _property[T](name: string, get: ((object) -> T)?, get_is_public: bool, set: ((object, T) -> void)?, set_is_public: bool) is
+            let property_type = typeof T
+
+            let getter: MethodInfo? =
+                if let read = get then
+                    MethodInfo("get_{name}", property_type, get_is_public, (instance: object, arguments: object?[]) -> object? => read(instance))
+                else
+                    null
+                fi
+
+            let setter: MethodInfo? =
+                if let assign = set then
+                    MethodInfo("set_{name}", _VOID, set_is_public, (instance: object, arguments: object?[]) -> object? is
+                        assign(instance, cast T(arguments[0]))
+                        return null
+                    si)
+                else
+                    null
+                fi
+
+            properties.add(PropertyInfo(name, property_type, _type!, (get? /\ get_is_public) \/ (set? /\ set_is_public), getter, setter))
+        si
+    si
+
+    /// The kinds a `TYPE_DESCRIPTION` records.
+    class TYPE_KIND is
+        CLASS: int static => 1
+        VALUE_TYPE: int static => 2
+        ENUM: int static => 4
+        INTERFACE: int static => 8
+        ARRAY: int static => 16
+    si
+si

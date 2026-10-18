@@ -1,14 +1,34 @@
 namespace Ghul is
+    use Collections.LIST
+
+    use System.Reflection.BindingFlags
+    use System.Reflection.FieldInfo
+    use System.Reflection.PropertyInfo
+
+    use Ghul.Internal.TYPE_DESCRIPTION
+
     /// The type of a value, as `get_type` and `typeof` give it. Each type
     /// has one, so two are the same object exactly when they stand for the
     /// same type.
     @suppress("non-upper-snake-case-name")
     class Type is
         _full_name: string
+        _describe: ((TYPE_DESCRIPTION) -> void)?
+        _description: TYPE_DESCRIPTION?
 
         /// - full_name: the type's name, qualified by its namespace
         init(full_name: string) is
             _full_name = full_name
+        si
+
+        /// A type whose members the program reflects on.
+        ///
+        /// - full_name: the type's name, qualified by its namespace
+        /// - describe: fills in a description of the type's members, called
+        ///   the first time one is asked for
+        init(full_name: string, describe: (TYPE_DESCRIPTION) -> void) is
+            _full_name = full_name
+            _describe = describe
         si
 
         /// The type's name, qualified by its namespace, with its type
@@ -17,14 +37,238 @@ namespace Ghul is
 
         /// The type's name, without its namespace or its type arguments.
         name: string is
-            let arguments = _full_name.index_of('[')
-            let end = if arguments >= 0 then arguments else _full_name.length fi
+            let end = _name_end()
             let start = _full_name.substring(0, end).last_index_of('.') + 1
 
             return _full_name.substring(start, end - start)
         si
 
+        /// The namespace the type is declared in, or null where it has none.
+        `namespace: string? is
+            let dot = _full_name.substring(0, _name_end()).last_index_of('.')
+
+            return if dot >= 0 then _full_name.substring(0, dot) else null fi
+        si
+
+        _name_end() -> int is
+            let arguments = _full_name.index_of('[')
+
+            return if arguments >= 0 then arguments else _full_name.length fi
+        si
+
+        /// The class this type derives from, or null for `object`, a
+        /// struct's own base aside, and for a type with no description.
+        base_type: Type? => description.base_type
+
+        /// Whether the type is a class: not a struct, an enum or a trait.
+        is_class: bool => description.is_class
+
+        /// Whether the type is a value type: a scalar, a struct or an enum.
+        is_value_type: bool => description.is_value_type
+
+        /// Whether the type is an enum.
+        is_enum: bool => description.is_enum
+
+        /// Whether the type is a trait.
+        is_interface: bool => description.is_interface
+
+        /// Whether the type is an array.
+        is_array: bool => description.is_array
+
+        /// Whether the type is an instantiation of a generic type.
+        is_generic_type: bool => description.arguments.count > 0
+
+        /// The type arguments of a generic type's instantiation, in order;
+        /// none for any other type.
+        get_generic_arguments() -> Type[] => description.arguments.to_array()
+
+        /// The element type of an array type, or null for any other type.
+        get_element_type() -> Type? => description.element_type
+
+        /// Every trait the type implements.
+        get_interfaces() -> Type[] => description.interfaces.to_array()
+
+        /// The fields `flags` selects: instance or static ones, public or
+        /// non-public ones, and, unless `DECLARED_ONLY` is given, the public
+        /// ones its base types declare as well.
+        ///
+        /// - flags: which fields to report
+        get_fields(flags: BindingFlags) -> FieldInfo[] is
+            let result = LIST[FieldInfo]()
+            let level: Type? mut = self
+            let inherited mut = false
+
+            while let current = level do
+                for `field in current.description.fields do
+                    if _selects(flags, `field.is_public, `field.is_static, inherited) then
+                        result.add(`field)
+                    fi
+                od
+
+                if flags & BindingFlags.DECLARED_ONLY == BindingFlags.DECLARED_ONLY then
+                    level = null
+                else
+                    level = current.base_type
+                    inherited = true
+                fi
+            od
+
+            return result.to_array()
+        si
+
+        /// The public instance fields, the type's own and its base types'.
+        get_fields() -> FieldInfo[] => get_fields(BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+
+        /// The field `flags` selects named `name`, or null where there is
+        /// none.
+        ///
+        /// - name: the field's name
+        /// - flags: which fields to look among
+        get_field(name: string, flags: BindingFlags) -> FieldInfo? is
+            for `field in get_fields(flags) do
+                if `field.name =~ name then
+                    return `field
+                fi
+            od
+
+            return null
+        si
+
+        /// The public instance field named `name`, or null where there is
+        /// none.
+        ///
+        /// - name: the field's name
+        get_field(name: string) -> FieldInfo? => get_field(name, BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+
+        /// The properties `flags` selects, as `get_fields` selects fields.
+        /// A property a derived type redeclares is reported once, as the
+        /// derived type declares it.
+        ///
+        /// - flags: which properties to report
+        get_properties(flags: BindingFlags) -> PropertyInfo[] is
+            let result = LIST[PropertyInfo]()
+            let level: Type? mut = self
+            let inherited mut = false
+
+            while let current = level do
+                for property in current.description.properties do
+                    if _selects(flags, property.is_public, property.is_static, inherited) /\ !_has_property(result, property.name) then
+                        result.add(property)
+                    fi
+                od
+
+                if flags & BindingFlags.DECLARED_ONLY == BindingFlags.DECLARED_ONLY then
+                    level = null
+                else
+                    level = current.base_type
+                    inherited = true
+                fi
+            od
+
+            return result.to_array()
+        si
+
+        /// The public instance properties, the type's own and its base
+        /// types'.
+        get_properties() -> PropertyInfo[] => get_properties(BindingFlags.PUBLIC | BindingFlags.INSTANCE)
+
+        /// The property `flags` selects named `name`, or null where there
+        /// is none.
+        ///
+        /// - name: the property's name
+        /// - flags: which properties to look among
+        get_property(name: string, flags: BindingFlags) -> PropertyInfo? is
+            for property in get_properties(flags) do
+                if property.name =~ name then
+                    return property
+                fi
+            od
+
+            return null
+        si
+
+        /// The public property named `name`, or null where there is none.
+        ///
+        /// - name: the property's name
+        get_property(name: string) -> PropertyInfo? =>
+            get_property(name, BindingFlags.PUBLIC | BindingFlags.INSTANCE | BindingFlags.STATIC)
+
+        /// The attributes of `attribute_type` the type carries.
+        ///
+        /// - attribute_type: the attribute type to look for
+        /// - inherit: whether to look on the base types too
+        get_custom_attributes(attribute_type: Type, inherit: bool) -> object[] is
+            let result = LIST[object]()
+            let level: Type? mut = self
+
+            while let current = level do
+                for attribute in current.description.attributes do
+                    if attribute.get_type() == attribute_type then
+                        result.add(attribute)
+                    fi
+                od
+
+                level = if inherit then current.base_type else null fi
+            od
+
+            return result.to_array()
+        si
+
+        /// Whether the type carries an attribute of `attribute_type`.
+        ///
+        /// - attribute_type: the attribute type to look for
+        /// - inherit: whether to look on the base types too
+        is_defined(attribute_type: Type, inherit: bool) -> bool =>
+            get_custom_attributes(attribute_type, inherit).count > 0
+
         /// The type's full name.
         to_string() -> string => _full_name
+
+        /// What reflection knows about the type, filled in the first time it
+        /// is asked for; empty for a type the program does not reflect on.
+        /// For the core library's own reflection classes.
+        description: TYPE_DESCRIPTION is
+            if let description = _description then
+                return description
+            fi
+
+            let description = TYPE_DESCRIPTION(self)
+
+            _description = description
+
+            if let describe = _describe then
+                describe(description)
+            fi
+
+            return description
+        si
+
+        _selects(flags: BindingFlags, is_public: bool, is_static: bool, inherited: bool) -> bool static is
+            let wants_visibility =
+                if is_public then
+                    flags & BindingFlags.PUBLIC == BindingFlags.PUBLIC
+                else
+                    !inherited /\ flags & BindingFlags.NON_PUBLIC == BindingFlags.NON_PUBLIC
+                fi
+
+            let wants_kind =
+                if is_static then
+                    !inherited /\ flags & BindingFlags.STATIC == BindingFlags.STATIC
+                else
+                    flags & BindingFlags.INSTANCE == BindingFlags.INSTANCE
+                fi
+
+            return wants_visibility /\ wants_kind
+        si
+
+        _has_property(properties: LIST[PropertyInfo], name: string) -> bool static is
+            for property in properties do
+                if property.name =~ name then
+                    return true
+                fi
+            od
+
+            return false
+        si
     si
 si
