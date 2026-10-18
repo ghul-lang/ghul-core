@@ -944,7 +944,7 @@ namespace IO is
         ///
         /// - path: the file to read
         read_all_lines(path: string) -> string[] static is
-            let reader = _TEXT_READER(read_all_text(path))
+            let reader = StringReader(read_all_text(path))
             let lines = Collections.LIST[string]()
 
             while let line = reader.read_line() do
@@ -1449,11 +1449,15 @@ namespace IO is
             Directory.create_directory(_path)
     si
 
-    // Reads text held in a string, a line or a character at a time.
-    class _TEXT_READER: TextReader is
+    /// Reads text held in a string, a line or a character at a time.
+    @suppress("non-upper-snake-case-name")
+    class StringReader: TextReader is
         _text: string
         _index: int
 
+        /// A reader over `text`, starting at its first character.
+        ///
+        /// - text: the text to read
         init(text: string) is
             super.init()
 
@@ -1511,13 +1515,13 @@ namespace IO is
     /// Reads the text of a file, or of a stream, as UTF-8.
     @suppress("non-upper-snake-case-name")
     class StreamReader: TextReader is
-        _reader: _TEXT_READER
+        _reader: StringReader
 
         /// - path: the file to read
         init(path: string) is
             super.init()
 
-            _reader = _TEXT_READER(File.read_all_text(path))
+            _reader = StringReader(File.read_all_text(path))
         si
 
         /// - stream: the stream to read, from its position to its end
@@ -1528,7 +1532,7 @@ namespace IO is
 
             stream.copy_to(bytes)
 
-            _reader = _TEXT_READER(_UTF8.decode(bytes.to_array()))
+            _reader = StringReader(_UTF8.decode(bytes.to_array()))
         si
 
         read_line() -> string? => _reader.read_line()
