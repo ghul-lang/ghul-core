@@ -255,6 +255,12 @@ namespace Ghul is
         is_defined(attribute_type: Type, inherit: bool) -> bool =>
             get_custom_attributes(attribute_type, inherit).count > 0
 
+        /// Whether `other` is this type. Each type has exactly one type object,
+        /// made the first time it is asked for and kept, so this is identity.
+        ///
+        /// - other: the type to compare with
+        =~(other: Type) -> bool pure => self == other
+
         /// The type's full name.
         to_string() -> string => _full_name
 
