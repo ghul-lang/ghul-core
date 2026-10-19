@@ -1,5 +1,0 @@
-{
-    "name": "sort-dotnet",
-    "targets": ["dotnet"],
-    "sources": ["*.ghul", "../../src/sort.ghul"]
-}

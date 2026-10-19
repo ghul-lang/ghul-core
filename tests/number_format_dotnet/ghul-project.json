@@ -1,5 +1,0 @@
-{
-    "name": "number-format-dotnet",
-    "targets": ["dotnet"],
-    "sources": ["*.ghul", "../../src/float_text.ghul", "../../src/number_format.ghul"]
-}

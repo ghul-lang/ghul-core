@@ -16,6 +16,15 @@
         "llvm": {
             "extends": "tests",
             "build_targets": ["llvm"]
+        },
+
+        // The tests that compare the library's own code with .NET's: they
+        // build for .NET, which ghul-cli does not, so each is an SDK
+        // project with its sources named in a .ghulproj and is built with
+        // `dotnet build`, by the compiler the tool manifest pins.
+        "dotnet": {
+            "build": "msbuild",
+            "compiler": "project"
         }
     }
 }

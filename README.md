@@ -60,18 +60,18 @@ the member's own body and holds overrides to nothing, the member is marked
 - `tests/stack-queue` — `STACK`, `Queue`, the set operations on `SET`,
   and a `KEY_VALUE_PAIR` destructured by position
 - `tests/float_text` — `to_string` on `double` and `single`
-- `tests/float_text_dotnet` — the floating-point formatter compiled for .NET
+- `dotnet-tests/float_text_dotnet` — the floating-point formatter compiled for .NET
   and checked against .NET's own text for boundary values and random bit
   patterns
 - `tests/number_format` — the numeric types' `to_string(format)` on the wasm target,
   against the text .NET writes for the same calls
-- `tests/number_format_dotnet` — the numeric formatter compiled for .NET and
+- `dotnet-tests/number_format_dotnet` — the numeric formatter compiled for .NET and
   checked against .NET's own text for fixed and random values of every
   magnitude, under every format the formatter covers
 - `tests/list_sort` — `LIST.sort` with a comparer and with a comparison function
 - `tests/list_members` — `LIST`'s sort, reverse and range members, and the scalar
   `Math` members, against .NET's output
-- `tests/sort_dotnet` — the sort compiled for .NET and checked against
+- `dotnet-tests/sort_dotnet` — the sort compiled for .NET and checked against
   .NET's `List.Sort` for where it leaves elements the comparer calls equal
 - `tests/self-host-members` — the members the compiler's own source uses: `string.format`,
   `replace_line_endings`, `ulong` parsing, `char.is_symbol`, `MutableList`'s `contains` and
@@ -132,7 +132,7 @@ ghul-core from this checkout (`"path": "../.."`), so the program compiles
 against the library's own sources as a user's wasm build would, with the
 pinned ghul-runtime after it. Beside it are expectation files for what the
 compiler should say and what the program prints. A test that builds runs
-under Node; `tests/float_text_dotnet` builds for .NET. Where the wasm
+under Node. Where the wasm
 target cannot yet compile what a test exercises, its expectation is the
 diagnostic that says so, and a comment in the test names what it waits for.
 
@@ -163,7 +163,14 @@ and the common task members need: `completed_task`, `from_result`,
 dotnet tool restore
 dotnet ghul-test tests                 # each project for the first target it lists
 dotnet ghul-test --config llvm tests  # each project that lists llvm, as a native executable
+dotnet ghul-test --config dotnet dotnet-tests  # the library's code compiled for .NET and checked against .NET's own
 ```
+
+The tests in `dotnet-tests` are .NET SDK projects, because ghul-cli does not
+build for .NET: each compiles part of the library's own source on .NET and
+compares what it does with .NET's. `float_text_dotnet` checks the
+floating-point formatter's text for boundary values and random bit patterns,
+`number_format_dotnet` the numeric format strings, and `sort_dotnet` the sort.
 
 The configurations are in `ghul-test.json`. Each project builds with the newest
 installed `ghul.compiler`, which ghul-cli installs if there is none, and an
