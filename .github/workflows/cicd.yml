@@ -85,6 +85,11 @@ jobs:
     - name: Run tests
       run: dotnet ghul-test tests
 
+    # ghul-cli does not build for .NET, so the tests that compare the
+    # library's code with .NET's are SDK projects with a runner of their own.
+    - name: Run the .NET tests
+      run: dotnet ghul-test --config dotnet dotnet-tests
+
   # The same tests built for the llvm target and run as native executables.
   # ghul-cli fetches the ghul-llvm release pinned for the compiler, as a
   # user's build does; a test that does not pass on llvm yet leaves the
