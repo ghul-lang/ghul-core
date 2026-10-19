@@ -15,13 +15,15 @@ namespace IO is
         /// The reader for standard input.
         `in: TextReader static => _in
 
-        /// Whether a complete line is waiting in standard input, or the end
-        /// of the input has been reached. Never waits, and never reads:
-        /// the line stays there for `read_line` to take.
+        /// Whether a read would return without waiting: a complete line is
+        /// waiting in standard input, or the end of the input has not been
+        /// read yet. Once the end has been read this is false again, where
+        /// `wait_for_input` stays true. Never waits, and never reads: the
+        /// line stays there for `read_line` to take.
         ///
-        /// A host that cannot ask this - a page supplying input through
-        /// the loader's `stdin` option, say - answers whether it has more
-        /// to give, which is what a poll-then-read loop wants.
+        /// A host with no way to watch the input - a page supplying it
+        /// through the loader's `stdin` option, say - answers whether a
+        /// complete line is already buffered.
         has_pending_input() -> bool static =>
             _pending_input()
 
