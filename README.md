@@ -32,10 +32,6 @@ the member's own body and holds overrides to nothing, the member is marked
 
 ## Layout
 
-- `requirements.json` — the oldest `ghul.compiler` that builds this release,
-  as `minimum-compiler`. The `ghul` tool reads it to choose a release for a
-  compiler; raise it in the same change that starts using a newer compiler
-  feature
 - `ghul-project.json` — the library manifest (#3212 shape): name, targets,
   sources. Nothing reads it yet; the `ghul` tool that will (#3211)
   consumes the library from Git as source (#3179)
