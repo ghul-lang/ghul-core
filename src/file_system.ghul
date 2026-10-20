@@ -1390,7 +1390,7 @@ namespace IO is
                     continue
                 fi
 
-                if _FILE_STORE.matches(Path.get_file_name(relative), pattern) then
+                if _FILE_STORE.matches(Path.get_file_name(relative)!, pattern) then
                     result.add(Path.combine(path, relative))
                 fi
             od
@@ -1410,7 +1410,7 @@ namespace IO is
         si
 
         /// The file's name, without the directories above it.
-        name: string => Path.get_file_name(_path)
+        name: string => Path.get_file_name(_path)!
 
         /// The file's path from the root.
         full_name: string => _FILE_STORE.full(_path)
@@ -1436,7 +1436,7 @@ namespace IO is
         si
 
         /// The directory's name, without the directories above it.
-        name: string => Path.get_file_name(_FILE_STORE.full(_path))
+        name: string => Path.get_file_name(_FILE_STORE.full(_path))!
 
         /// The directory's path from the root.
         full_name: string => _FILE_STORE.full(_path)

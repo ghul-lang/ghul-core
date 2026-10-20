@@ -76,14 +76,16 @@ namespace IO is
         /// at, or empty where it ends with a `/`.
         ///
         /// - path: the path to take the name from
-        get_file_name(path: string) -> string static pure =>
+        get_file_name(path: string) -> string? static pure => _name_of(path)
+
+        _name_of(path: string) -> string static pure =>
             path.substring(path.last_index_of('/') + 1)
 
         /// The name `get_file_name` answers, without its extension.
         ///
         /// - path: the path to take the name from
-        get_file_name_without_extension(path: string) -> string static pure is
-            let name = get_file_name(path)
+        get_file_name_without_extension(path: string) -> string? static pure is
+            let name = _name_of(path)
             let dot = name.last_index_of('.')
 
             return if dot < 0 then name else name.substring(0, dot) fi
@@ -93,8 +95,8 @@ namespace IO is
         /// or empty where it has none.
         ///
         /// - path: the path to take the extension from
-        get_extension(path: string) -> string static pure is
-            let name = get_file_name(path)
+        get_extension(path: string) -> string? static pure is
+            let name = _name_of(path)
             let dot = name.last_index_of('.')
 
             return if dot < 0 \/ dot == name.length - 1 then "" else name.substring(dot) fi
@@ -104,15 +106,15 @@ namespace IO is
         ///
         /// - path: the path to look at
         has_extension(path: string) -> bool static pure =>
-            get_extension(path).length > 0
+            get_extension(path)!.length > 0
 
         /// `path` with the extension of its last part replaced by
         /// `extension`, or removed where `extension` is null.
         ///
         /// - path: the path to change
         /// - extension: the new extension, with or without its leading `.`
-        change_extension(path: string, extension: string?) -> string static pure is
-            let name = get_file_name(path)
+        change_extension(path: string, extension: string?) -> string? static pure is
+            let name = _name_of(path)
             let dot = name.last_index_of('.')
             let stem = if dot < 0 then path else path.substring(0, path.length - name.length + dot) fi
 
