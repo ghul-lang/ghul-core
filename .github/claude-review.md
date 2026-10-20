@@ -55,6 +55,10 @@ against the previous version no longer compiles against. Minor means
 additions: new public types or members. A real body replacing a stub, or a
 fix that leaves signatures alone, is a patch.
 
+A change that brings ghul-core back into line with the .NET BCL's behaviour or
+signatures is a fix, not a breaking change: patch or minor, even when it breaks
+source that relied on the divergence.
+
 While `VERSION` is below 1.0.0, a breaking change is a minor bump, as semver
 treats a 0.x release; moving to 1.0.0 is the maintainer's decision and is not
 requested in review.
