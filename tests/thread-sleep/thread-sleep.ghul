@@ -11,3 +11,9 @@ let watch = System.Diagnostics.Stopwatch.start_new()
 System.Threading.Thread.sleep(System.TimeSpan.from_milliseconds(30.0))
 
 write_line("{watch.elapsed_milliseconds >= 30L}")
+
+try
+    System.Threading.Thread.sleep(-2)
+catch _: System.ArgumentOutOfRangeException
+    write_line("rejected")
+yrt
