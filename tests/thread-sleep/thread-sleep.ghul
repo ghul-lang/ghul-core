@@ -1,0 +1,7 @@
+use IO.Std.write_line
+
+let start = System.Environment.tick_count64
+
+System.Threading.Thread.sleep(50)
+
+write_line("{System.Environment.tick_count64 - start >= 50L}")

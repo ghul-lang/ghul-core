@@ -1,0 +1,16 @@
+namespace System.Threading is
+    /// The member of .NET's `System.Threading.Thread` the source-core targets
+    /// have: pausing the program. The program is single threaded, so the wait
+    /// holds the whole program.
+    class Thread is
+        /// Waits for at least `milliseconds` before returning.
+        ///
+        /// - milliseconds: how long to wait; a value of zero or less returns at once
+        sleep(milliseconds: int) static is
+            let due = System.Environment.tick_count64 + cast long(milliseconds)
+
+            while System.Environment.tick_count64 < due do
+            od
+        si
+    si
+si

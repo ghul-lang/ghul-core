@@ -38,6 +38,15 @@ namespace Ghul is
             return cast int(_next_u64() >> 33)
         si
 
+        /// Replaces every element of `buffer` with a random byte.
+        ///
+        /// - buffer: the array to fill
+        next_bytes(buffer: ubyte[]) is
+            for index in 0..buffer.count do
+                Ghul._array_set(buffer, index, cast ubyte(next() & 255))
+            od
+        si
+
         /// A non-negative integer less than `max`.
         ///
         /// - max: the exclusive upper bound; must not be negative
