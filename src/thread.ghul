@@ -1,0 +1,24 @@
+namespace System.Threading is
+    /// The members of .NET's `System.Threading.Thread` the source-core
+    /// targets have: pausing the program. The program is single threaded, so
+    /// the wait holds the whole program.
+    class Thread is
+        /// Waits for at least `milliseconds` before returning, without using the processor.
+        ///
+        /// - milliseconds: how long to wait; a value of zero or less returns at once
+        sleep(milliseconds: int) static is
+            _host_sleep(milliseconds)
+        si
+
+        /// Waits for at least `timeout` before returning, without using the processor.
+        ///
+        /// - timeout: how long to wait; a value of zero or less returns at once
+        sleep(timeout: System.TimeSpan) static is
+            _host_sleep(cast int(timeout.total_milliseconds))
+        si
+
+        // Blocks the program for the given milliseconds, as the host does it.
+        @intrinsic("host.sleep")
+        _host_sleep(milliseconds: int) static
+    si
+si
