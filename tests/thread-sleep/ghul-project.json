@@ -1,9 +1,0 @@
-{
-    "name": "thread-sleep",
-    "targets": ["wasm", "llvm"],
-    "sources": ["*.ghul"],
-    "options": { "suppress": ["assembly-attribute-unmatched"] },
-    "dependencies": {
-        "ghul-core": { "path": "../.." }
-    }
-}
