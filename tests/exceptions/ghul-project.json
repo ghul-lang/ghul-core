@@ -4,6 +4,7 @@
     "sources": ["*.ghul"],
     "options": { "suppress": ["assembly-attribute-unmatched"] },
     "dependencies": {
-        "ghul-core": { "path": "../.." }
+        "ghul-core": { "path": "../.." },
+        "ghul-runtime": { "version": ">=0.0.0" }
     }
 }
