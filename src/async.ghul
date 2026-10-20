@@ -76,8 +76,8 @@ si
 
 namespace System is
     /// The members of .NET's `System.Environment` the wasm target has: the
-    /// time since the program started, for measuring intervals. The program's
-    /// variables and arguments are `Ghul.Environment`.
+    /// time since the program started, for measuring intervals, and reading a
+    /// variable. The whole environment and the arguments are `Ghul.Environment`.
     class Environment is
         /// Milliseconds since the program started, which only ever increase.
         tick_count64: long static => cast long(_monotonic_milliseconds())
@@ -85,6 +85,12 @@ namespace System is
         /// Milliseconds since the program started, which only ever increase
         /// until they no longer fit in an `int`.
         tick_count: int static => cast int(tick_count64)
+
+        /// The value of the environment variable `name`, or absent if it is not set.
+        ///
+        /// - name: the variable's name
+        get_environment_variable(name: string) -> string? static =>
+            Ghul.ENVIRONMENT.instance[name]
 
         // Milliseconds since the program started, as the host measures them.
         @intrinsic("host.monotonic_milliseconds")
