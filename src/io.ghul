@@ -15,6 +15,18 @@ namespace IO is
         /// The reader for standard input.
         `in: TextReader static => _in
 
+        /// Whether standard input comes from something other than a terminal,
+        /// such as a pipe or a file.
+        is_input_redirected: bool static => !_is_terminal(0)
+
+        /// Whether standard output goes somewhere other than a terminal, such
+        /// as a pipe or a file.
+        is_output_redirected: bool static => !_is_terminal(1)
+
+        /// Whether standard error goes somewhere other than a terminal, such
+        /// as a pipe or a file.
+        is_error_redirected: bool static => !_is_terminal(2)
+
         /// Whether a read would return without waiting: a complete line is
         /// waiting in standard input, or the end of the input has not been
         /// read yet. Once the end has been read this is false again, where
@@ -86,6 +98,10 @@ namespace IO is
         // standard error.
         @intrinsic("host.write")
         _write(text: string, stream: int) static
+
+        // Whether stream 0, 1 or 2 is a terminal.
+        @intrinsic("host.is_terminal")
+        _is_terminal(stream: int) -> bool static
     si
 
     /// Reads text from a stream, a line or a character at a time.
