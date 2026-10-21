@@ -179,3 +179,11 @@ goes back in when they close.
 
 The type-error test passes when the error names
 the member and its place.
+
+## The loader
+
+`host/loader.mjs` runs a compiled program: it provides the host operations this
+library declares with `@intrinsic("host.*")`, loads the module beside it, and
+reports its exit status. The compiler is given it with `--wasm-loader` and
+writes it beside each module it builds, so the loader a program runs under is
+the one from the core it was compiled with.
