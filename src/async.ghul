@@ -86,6 +86,11 @@ namespace System is
         /// until they no longer fit in an `int`.
         tick_count: int static => cast int(tick_count64)
 
+        /// The bytes of physical memory the process occupies: the resident
+        /// set, or the working set where the system calls it that. It reads
+        /// the figure without collecting, and is 0 where the host cannot say.
+        working_set: long static => cast long(_working_set_bytes())
+
         /// The value of the environment variable `name`, or absent if it is not set.
         ///
         /// - name: the variable's name
@@ -95,5 +100,9 @@ namespace System is
         // Milliseconds since the program started, as the host measures them.
         @intrinsic("host.monotonic_milliseconds")
         _monotonic_milliseconds() -> double static
+
+        // The process's resident memory, as the host measures it.
+        @intrinsic("host.working_set_bytes")
+        _working_set_bytes() -> double static
     si
 si
